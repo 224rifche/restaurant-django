@@ -1,25 +1,60 @@
 {% extends 'base.html' %}
 
-{% block title %}Caisses{% endblock %}
+{% block title %}Historique des caisses{% endblock %}
 
 {% block content %}
-<h1 class="h1">Historique des caisses</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📁 Historique des Caisses</h1>
+        <p class="page-subtitle">Toutes les sessions de caisse</p>
+    </div>
+    <a href="{% url 'payments:dashboard_caisse' %}" class="btn btn--ghost">← Retour</a>
+</div>
 
 <div class="card">
-    <table class="table">
-        <thead><tr><th>Ouverture</th><th>Fermeture</th><th>Statut</th><th></th></tr></thead>
-        <tbody>
-            {% for c in caisses %}
-            <tr>
-                <td>{{ c.date_ouverture }}</td>
-                <td>{{ c.date_fermeture|default:'-' }}</td>
-                <td><span class="badge">{{ c.get_status_display }}</span></td>
-                <td><a class="btn" href="{% url 'payments:detail_caisse' c.id %}">Voir</a></td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">Aucune caisse.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card__header">
+        <h3 class="card__title">Sessions de caisse</h3>
+        <span class="badge badge--neutral">{{ caisses|length }} session{{ caisses|length|pluralize }}</span>
+    </div>
+    
+    {% if caisses %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ouverture</th>
+                    <th>Fermeture</th>
+                    <th>Solde initial</th>
+                    <th>Solde final</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in caisses %}
+                <tr>
+                    <td>{{ c.date_ouverture|date:"d/m/Y H:i" }}</td>
+                    <td>{{ c.date_fermeture|date:"d/m/Y H:i"|default:'-' }}</td>
+                    <td>{{ c.solde_initial }}€</td>
+                    <td><strong style="color: var(--accent-success);">{{ c.solde_actuel }}€</strong></td>
+                    <td>
+                        {% if c.est_ouverte %}
+                        <span class="badge badge--success">🟢 Ouverte</span>
+                        {% else %}
+                        <span class="badge badge--neutral">🔒 Fermée</span>
+                        {% endif %}
+                    </td>
+                    <td><a class="btn btn--sm btn--ghost" href="{% url 'payments:detail_caisse' c.id %}">👁️ Détails</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📁</div>
+        <p class="empty-state__title">Aucune caisse</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

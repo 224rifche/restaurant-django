@@ -26,18 +26,39 @@ def create_depense(request):
             messages.error(request, "Champs obligatoires manquants.")
             return redirect('expenses:create_depense')
 
+        # Convertir le montant en Decimal pour la comparaison
+        from decimal import Decimal, InvalidOperation
+        try:
+            montant_decimal = Decimal(montant)
+        except InvalidOperation:
+            messages.error(request, "Montant invalide.")
+            return redirect('expenses:create_depense')
+
+        # Vérifier que le solde de la caisse est suffisant (règle du cahier des charges)
+        if montant_decimal > caisse.solde_actuel:
+            messages.error(
+                request, 
+                f"Solde insuffisant. Solde actuel: {caisse.solde_actuel}€. "
+                f"Montant demandé: {montant_decimal}€"
+            )
+            return redirect('expenses:create_depense')
+
         with transaction.atomic():
+            # Créer la sortie de caisse
             SortieCaisse.objects.create(
                 caisse=caisse,
                 type_depense_id=type_depense_id,
-                montant=montant,
+                montant=montant_decimal,
                 motif=motif,
                 justificatif=justificatif,
                 utilisateur=request.user,
                 notes=notes,
             )
+            # Mettre à jour le solde de la caisse
+            caisse.solde_actuel -= montant_decimal
+            caisse.save()
 
-        messages.success(request, "Dépense enregistrée.")
+        messages.success(request, f"Dépense de {montant_decimal}€ enregistrée avec succès.")
         return redirect('payments:dashboard_caisse')
 
     types_depense = TypeDepense.objects.all().order_by('nom')

@@ -1,19 +1,68 @@
 {% extends 'base.html' %}
 
-{% block title %}Fermer caisse{% endblock %}
+{% block title %}Fermer la caisse{% endblock %}
 
 {% block content %}
-<h1 class="h1">Fermer la caisse</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔒 Fermer la Caisse</h1>
+        <p class="page-subtitle">Clôturer la session en cours</p>
+    </div>
+</div>
 
-<div class="card">
-    <form method="post" class="form">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        {{ form.as_p }}
-        <div class="actions">
-            <button class="btn btn--danger" type="submit">Fermer</button>
-            <a class="btn" href="{% url 'payments:dashboard_caisse' %}">Annuler</a>
+<div class="grid grid--2">
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">Solde de fermeture</h3>
         </div>
-    </form>
+        
+        <form method="post" class="form">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="message message--error">{{ form.non_field_errors }}</div>
+            {% endif %}
+            
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
+                {% if field.help_text %}<span class="form-hint">{{ field.help_text }}</span>{% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="message message--warning" style="margin-top: 20px;">
+                ⚠️ Une fois fermée, vous ne pourrez plus enregistrer de paiements ou dépenses sur cette caisse.
+            </div>
+            
+            <div class="btn-group" style="margin-top: 24px;">
+                <button class="btn btn--danger btn--lg" type="submit">🔒 Fermer la caisse</button>
+                <a class="btn btn--ghost" href="{% url 'payments:dashboard_caisse' %}">Annuler</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">📊 Récapitulatif</h3>
+        </div>
+        {% if caisse %}
+        <div style="padding: 20px 0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="color: var(--text-secondary);">Solde initial</span>
+                <strong>{{ caisse.solde_initial }}€</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                <span style="color: var(--text-secondary);">Solde actuel</span>
+                <strong style="color: var(--accent-success);">{{ caisse.solde_actuel }}€</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <span style="color: var(--text-secondary);">Différence</span>
+                <strong>{{ caisse.difference }}€</strong>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

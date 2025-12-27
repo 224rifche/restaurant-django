@@ -1,29 +1,56 @@
 {% extends 'base.html' %}
 
-{% block title %}Sorties{% endblock %}
+{% block title %}Sorties de caisse{% endblock %}
 
 {% block content %}
-<div class="actions" style="margin-bottom:12px;">
-    <h1 class="h1" style="margin:0;">Sorties de caisse</h1>
-    <a class="btn btn--primary" href="{% url 'payments:creer_sortie' %}">Nouvelle sortie</a>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📤 Sorties de Caisse</h1>
+        <p class="page-subtitle">Historique de toutes les dépenses</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'expenses:create_depense' %}" class="btn btn--primary">+ Nouvelle dépense</a>
+        <a href="{% url 'payments:dashboard_caisse' %}" class="btn btn--ghost">← Retour</a>
+    </div>
 </div>
 
 <div class="card">
-    <table class="table">
-        <thead><tr><th>Type</th><th>Montant</th><th>Motif</th><th>Date</th><th></th></tr></thead>
-        <tbody>
-            {% for s in sorties %}
-            <tr>
-                <td>{{ s.type_depense.nom }}</td>
-                <td><span class="badge">{{ s.montant }}</span></td>
-                <td>{{ s.motif }}</td>
-                <td>{{ s.date_sortie }}</td>
-                <td><a class="btn" href="{% url 'payments:detail_sortie' s.id %}">Voir</a></td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5">Aucune sortie.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card__header">
+        <h3 class="card__title">Dépenses enregistrées</h3>
+        <span class="badge badge--danger">{{ sorties|length }} sortie{{ sorties|length|pluralize }}</span>
+    </div>
+    
+    {% if sorties %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Montant</th>
+                    <th>Motif</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sorties %}
+                <tr>
+                    <td><span class="badge badge--neutral">{{ s.type_depense.nom }}</span></td>
+                    <td><span class="badge badge--danger">-{{ s.montant }}€</span></td>
+                    <td>{{ s.motif|truncatechars:40 }}</td>
+                    <td style="color: var(--text-secondary);">{{ s.date_sortie|date:"d/m/Y H:i" }}</td>
+                    <td><a class="btn btn--sm btn--ghost" href="{% url 'payments:detail_sortie' s.id %}">👁️ Détails</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📤</div>
+        <p class="empty-state__title">Aucune sortie</p>
+        <a href="{% url 'expenses:create_depense' %}" class="btn btn--primary">+ Ajouter une dépense</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -3,47 +3,121 @@
 {% block title %}Utilisateurs{% endblock %}
 
 {% block content %}
-<div class="actions" style="margin-bottom:12px;">
-    <h1 class="h1" style="margin:0;">Utilisateurs</h1>
-    <a class="btn btn--primary" href="{% url 'authentication:create_user' %}">Créer</a>
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👥 Gestion des Utilisateurs</h1>
+        <p class="page-subtitle">Gérez les comptes et les accès du personnel</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'authentication:create_user' %}" class="btn btn--primary">+ Nouvel utilisateur</a>
+    </div>
 </div>
 
-<div class="card">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Login</th>
-                <th>Rôle</th>
-                <th>Statut</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr>
-                <td>{{ u.login }}</td>
-                <td><span class="badge">{{ u.get_role_display }}</span></td>
-                <td>
-                    {% if u.is_active %}
-                        <span class="badge">Actif</span>
-                    {% else %}
-                        <span class="badge">Désactivé</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="actions">
-                        <a class="btn" href="{% url 'authentication:update_user' u.id %}">Modifier</a>
-                        <a class="btn" href="{% url 'authentication:toggle_user_status' u.id %}">Activer/Désactiver</a>
-                        <a class="btn btn--danger" href="{% url 'authentication:delete_user' u.id %}">Supprimer</a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">Aucun utilisateur.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Stats par rôle -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">👥</div>
+        <div class="stat-card__value">{{ users|length }}</div>
+        <div class="stat-card__label">Total utilisateurs</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">✅</div>
+        <div class="stat-card__value" id="users-actifs">-</div>
+        <div class="stat-card__label">Actifs</div>
+    </div>
+    <div class="stat-card stat-card--danger">
+        <div class="stat-card__icon">🚫</div>
+        <div class="stat-card__value" id="users-inactifs">-</div>
+        <div class="stat-card__label">Désactivés</div>
+    </div>
 </div>
+
+<!-- Liste des utilisateurs -->
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">📋 Liste des utilisateurs</h3>
+    </div>
+    
+    {% if users %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Créé le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr class="{% if not u.is_active %}user-inactif{% endif %}">
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="avatar">{{ u.login|slice:":2"|upper }}</div>
+                            <div>
+                                <strong>{{ u.login }}</strong>
+                                {% if u == request.user %}
+                                <span class="badge badge--info" style="margin-left: 8px;">Vous</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge {% if u.role == 'Radmin' %}badge--danger{% elif u.role == 'Rcomptable' %}badge--warning{% elif u.role == 'Rcuisinier' %}badge--info{% elif u.role == 'Rservent' %}badge--primary{% else %}badge--success{% endif %}">
+                            {% if u.role == 'Radmin' %}👑{% elif u.role == 'Rcomptable' %}💰{% elif u.role == 'Rcuisinier' %}👨‍🍳{% elif u.role == 'Rservent' %}🍽️{% else %}🪑{% endif %}
+                            {{ u.get_role_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge badge--success">✅ Actif</span>
+                        {% else %}
+                            <span class="badge badge--danger">🚫 Désactivé</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary); font-size: 13px;">
+                            {{ u.created_at|date:"d/m/Y" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'authentication:update_user' u.id %}">✏️ Modifier</a>
+                            {% if u != request.user %}
+                            <a class="btn btn--sm {% if u.is_active %}btn--warning{% else %}btn--success{% endif %}" href="{% url 'authentication:toggle_user_status' u.id %}">
+                                {% if u.is_active %}🔒{% else %}🔓{% endif %}
+                            </a>
+                            <a class="btn btn--sm btn--danger" href="{% url 'authentication:delete_user' u.id %}">🗑️</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">👥</div>
+        <h3 class="empty-state__title">Aucun utilisateur</h3>
+        <p class="empty-state__description">Créez le premier utilisateur pour commencer</p>
+        <a href="{% url 'authentication:create_user' %}" class="btn btn--primary">+ Créer un utilisateur</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let actifs = 0, inactifs = 0;
+    document.querySelectorAll('tbody tr').forEach(tr => {
+        if (tr.classList.contains('user-inactif')) inactifs++;
+        else actifs++;
+    });
+    document.getElementById('users-actifs').textContent = actifs;
+    document.getElementById('users-inactifs').textContent = inactifs;
+});
+</script>
 {% endblock %}

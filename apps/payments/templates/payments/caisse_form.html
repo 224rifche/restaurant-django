@@ -1,18 +1,39 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ title|default:'Caisse' }}{% endblock %}
+{% block title %}{{ title|default:'Ouvrir une caisse' }}{% endblock %}
 
 {% block content %}
-<h1 class="h1">{{ title|default:'Caisse' }}</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔓 {{ title|default:'Ouvrir une caisse' }}</h1>
+        <p class="page-subtitle">Démarrer une nouvelle session de caisse</p>
+    </div>
+</div>
 
-<div class="card">
+<div class="card" style="max-width: 500px;">
+    <div class="card__header">
+        <h3 class="card__title">Paramètres de la caisse</h3>
+    </div>
+    
     <form method="post" class="form">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        {{ form.as_p }}
-        <div class="actions">
-            <button class="btn btn--primary" type="submit">Enregistrer</button>
-            <a class="btn" href="{% url 'payments:dashboard_caisse' %}">Annuler</a>
+        
+        {% if form.non_field_errors %}
+        <div class="message message--error">{{ form.non_field_errors }}</div>
+        {% endif %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
+            {% if field.help_text %}<span class="form-hint">{{ field.help_text }}</span>{% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="btn-group" style="margin-top: 24px;">
+            <button class="btn btn--primary btn--lg" type="submit">🔓 Ouvrir la caisse</button>
+            <a class="btn btn--ghost" href="{% url 'payments:dashboard_caisse' %}">Annuler</a>
         </div>
     </form>
 </div>

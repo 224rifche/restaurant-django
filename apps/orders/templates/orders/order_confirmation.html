@@ -1,16 +1,35 @@
 {% extends 'base.html' %}
 
-{% block title %}Confirmation{% endblock %}
+{% block title %}Commande confirmée{% endblock %}
 
 {% block content %}
-<h1 class="h1">Commande confirmée</h1>
-
-<div class="card">
-    <div>Numéro: <span class="badge">{{ commande.numero_commande }}</span></div>
-    <div>Statut: <span class="badge">{{ commande.get_statut_display }}</span></div>
-    <div class="actions" style="margin-top:12px;">
-        <a class="btn btn--primary" href="{% url 'orders:view_order' commande.id %}">Voir la commande</a>
-        <a class="btn" href="{% url 'menu:list_dishes' %}">Retour au menu</a>
+<div class="card" style="max-width: 500px; margin: 40px auto; text-align: center; padding: 60px 40px;">
+    <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: rgba(16, 185, 129, 0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px;">
+        ✅
+    </div>
+    
+    <h1 style="font-size: 28px; margin: 0 0 8px; color: var(--text-primary);">Commande confirmée !</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 32px;">Votre commande a été enregistrée avec succès</p>
+    
+    <div style="background: var(--bg-input); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 32px;">
+        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">Numéro de commande</div>
+        <div style="font-size: 24px; font-weight: 700; color: var(--accent-primary);">{{ commande.numero_commande }}</div>
+    </div>
+    
+    <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+        <div style="flex: 1; padding: 16px; background: var(--bg-input); border-radius: var(--radius-md);">
+            <div style="font-size: 12px; color: var(--text-muted);">Statut</div>
+            <div style="font-weight: 600;">{{ commande.get_statut_display }}</div>
+        </div>
+        <div style="flex: 1; padding: 16px; background: var(--bg-input); border-radius: var(--radius-md);">
+            <div style="font-size: 12px; color: var(--text-muted);">Montant</div>
+            <div style="font-weight: 600; color: var(--accent-success);">{{ commande.montant_total }}€</div>
+        </div>
+    </div>
+    
+    <div class="btn-group" style="margin-top: 32px; justify-content: center;">
+        <a class="btn btn--primary btn--lg" href="{% url 'orders:view_order' commande.id %}">📋 Voir ma commande</a>
+        <a class="btn btn--ghost" href="{% url 'menu:list_dishes' %}">🍴 Retour au menu</a>
     </div>
 </div>
 {% endblock %}

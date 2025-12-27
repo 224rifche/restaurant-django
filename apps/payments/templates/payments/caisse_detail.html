@@ -3,54 +3,82 @@
 {% block title %}Détails caisse{% endblock %}
 
 {% block content %}
-<h1 class="h1">Détails caisse</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Détails de la Caisse</h1>
+        <p class="page-subtitle">Session du {{ caisse.date_ouverture|date:"d/m/Y" }}</p>
+    </div>
+    <a href="{% url 'payments:liste_caisses' %}" class="btn btn--ghost">← Retour</a>
+</div>
 
-<div class="grid">
-    <div class="col-6">
-        <div class="card">
-            <div>Date ouverture: <span class="badge">{{ caisse.date_ouverture }}</span></div>
-            <div>Statut: <span class="badge">{{ caisse.get_status_display }}</span></div>
-            <div>Solde initial: <span class="badge">{{ caisse.solde_initial }}</span></div>
-            <div>Solde actuel: <span class="badge">{{ caisse.solde_actuel }}</span></div>
-        </div>
+<div class="stats-grid">
+    <div class="stat-card {% if caisse.est_ouverte %}stat-card--success{% else %}stat-card--neutral{% endif %}">
+        <div class="stat-card__icon">{% if caisse.est_ouverte %}🟢{% else %}🔒{% endif %}</div>
+        <div class="stat-card__value">{% if caisse.est_ouverte %}Ouverte{% else %}Fermée{% endif %}</div>
+        <div class="stat-card__label">Statut</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">💵</div>
+        <div class="stat-card__value">{{ caisse.solde_initial }}€</div>
+        <div class="stat-card__label">Solde initial</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel }}€</div>
+        <div class="stat-card__label">Solde actuel</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">📅</div>
+        <div class="stat-card__value">{{ caisse.date_ouverture|date:"H:i" }}</div>
+        <div class="stat-card__label">{{ caisse.date_ouverture|date:"d/m/Y" }}</div>
     </div>
 </div>
 
-<div class="card" style="margin-top:14px;">
-    <div class="h2">Paiements</div>
-    <table class="table">
-        <thead><tr><th>Commande</th><th>Montant</th><th>Mode</th><th>Date</th></tr></thead>
-        <tbody>
+<div class="grid grid--2">
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">💳 Paiements</h3>
+            <span class="badge badge--success">{{ paiements|length }}</span>
+        </div>
+        {% if paiements %}
+        <div class="activity-list">
             {% for p in paiements %}
-            <tr>
-                <td>{{ p.commande.numero_commande }}</td>
-                <td><span class="badge">{{ p.montant }}</span></td>
-                <td><span class="badge">{{ p.get_mode_paiement_display }}</span></td>
-                <td>{{ p.date_paiement }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">Aucun paiement.</td></tr>
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(16, 185, 129, 0.15);">💳</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ p.commande.numero_commande }}</div>
+                    <div class="activity-item__time">{{ p.date_paiement|date:"H:i" }} • {{ p.get_mode_paiement_display }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--positive">+{{ p.montant }}€</div>
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
+        </div>
+        {% else %}
+        <div class="empty-state"><p>Aucun paiement</p></div>
+        {% endif %}
+    </div>
 
-<div class="card" style="margin-top:14px;">
-    <div class="h2">Sorties</div>
-    <table class="table">
-        <thead><tr><th>Type</th><th>Montant</th><th>Motif</th><th>Date</th></tr></thead>
-        <tbody>
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">📤 Sorties</h3>
+            <span class="badge badge--danger">{{ sorties|length }}</span>
+        </div>
+        {% if sorties %}
+        <div class="activity-list">
             {% for s in sorties %}
-            <tr>
-                <td>{{ s.type_depense.nom }}</td>
-                <td><span class="badge">{{ s.montant }}</span></td>
-                <td>{{ s.motif }}</td>
-                <td>{{ s.date_sortie }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">Aucune sortie.</td></tr>
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(239, 68, 68, 0.15);">📤</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ s.type_depense.nom }}</div>
+                    <div class="activity-item__time">{{ s.date_sortie|date:"H:i" }} • {{ s.motif|truncatechars:20 }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--negative">-{{ s.montant }}€</div>
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><p>Aucune sortie</p></div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

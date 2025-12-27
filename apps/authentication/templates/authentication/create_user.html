@@ -3,18 +3,78 @@
 {% block title %}Créer un utilisateur{% endblock %}
 
 {% block content %}
-<h1 class="h1">Créer un utilisateur</h1>
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">👤 Nouvel Utilisateur</h1>
+        <p class="page-subtitle">Créer un nouveau compte utilisateur</p>
+    </div>
+</div>
 
-<div class="card">
-    <form method="post" class="form">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        {{ form.as_p }}
-
-        <div class="actions">
-            <button class="btn btn--primary" type="submit">Enregistrer</button>
-            <a class="btn" href="{% url 'authentication:list_users' %}">Annuler</a>
+<div class="grid grid--2">
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">Informations du compte</h3>
         </div>
-    </form>
+        
+        <form method="post" class="form">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="message message--error">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label class="form-label">Login *</label>
+                <input type="text" name="login" class="form-input" placeholder="Ex: SERV001" required 
+                       minlength="6" pattern="[a-zA-Z0-9]+" 
+                       title="Min 6 caractères, lettres et chiffres uniquement">
+                <span class="form-hint">Minimum 6 caractères alphanumériques</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Mot de passe *</label>
+                <input type="password" name="password1" class="form-input" required minlength="8">
+                <span class="form-hint">Minimum 8 caractères</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Confirmer le mot de passe *</label>
+                <input type="password" name="password2" class="form-input" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Rôle *</label>
+                <select name="role" class="form-select" required>
+                    <option value="">Sélectionnez un rôle...</option>
+                    <option value="Rtable">🪑 Table (Client)</option>
+                    <option value="Rservent">🍽️ Serveur/Servante</option>
+                    <option value="Rcuisinier">👨‍🍳 Cuisinier</option>
+                    <option value="Rcomptable">💰 Comptable</option>
+                    <option value="Radmin">👑 Administrateur</option>
+                </select>
+            </div>
+
+            <div class="btn-group" style="margin-top: 24px;">
+                <button class="btn btn--primary btn--lg" type="submit">✅ Créer l'utilisateur</button>
+                <a class="btn btn--ghost" href="{% url 'authentication:list_users' %}">Annuler</a>
+            </div>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">ℹ️ Guide des rôles</h3>
+        </div>
+        <div style="color: var(--text-secondary); font-size: 14px; line-height: 1.8;">
+            <p><strong>🪑 Table</strong> - Consultation menu, panier, commandes</p>
+            <p><strong>🍽️ Serveur</strong> - Tables, commandes, paiements</p>
+            <p><strong>👨‍🍳 Cuisinier</strong> - Gestion des plats</p>
+            <p><strong>💰 Comptable</strong> - Caisse, paiements, dépenses</p>
+            <p><strong>👑 Admin</strong> - Accès total</p>
+        </div>
+    </div>
 </div>
 {% endblock %}

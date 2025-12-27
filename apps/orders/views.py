@@ -250,19 +250,44 @@ def mark_order_served(request, order_id):
 
 @role_required(['Rservent', 'Radmin'])
 def mark_order_paid(request, order_id):
+    from apps.payments.models import Caisse, Paiement
+    
     commande = get_object_or_404(Commande, id=order_id, statut='servie')
     
-    if request.method == 'POST':
-        commande.statut = 'payee'
-        commande.save()
-        
-        # Créer un nouveau panier vide pour la table
-        Panier.objects.create(table=commande.table, is_active=True)
-        
-        messages.success(request, f"La commande {commande.numero_commande} a été marquée comme payée.")
+    # Vérifier qu'une caisse est ouverte
+    caisse = Caisse.get_caisse_ouverte()
+    if not caisse:
+        messages.error(request, "Aucune caisse n'est ouverte. Veuillez ouvrir une caisse avant d'enregistrer un paiement.")
         return redirect('orders:list_orders')
     
-    return render(request, 'orders/mark_order_paid.html', {'commande': commande})
+    if request.method == 'POST':
+        mode_paiement = request.POST.get('mode_paiement', 'especes')
+        
+        with transaction.atomic():
+            # Marquer la commande comme payée
+            commande.statut = 'payee'
+            commande.save()
+            
+            # Créer l'enregistrement de paiement
+            Paiement.objects.create(
+                commande=commande,
+                montant=commande.montant_total,
+                mode_paiement=mode_paiement,
+                caisse=caisse,
+                utilisateur=request.user
+            )
+            
+            # Mettre à jour le solde de la caisse (augmente)
+            caisse.solde_actuel += commande.montant_total
+            caisse.save()
+            
+            # Créer un nouveau panier vide pour la table
+            Panier.objects.create(table=commande.table, is_active=True)
+        
+        messages.success(request, f"Paiement de {commande.montant_total}€ enregistré pour la commande {commande.numero_commande}.")
+        return redirect('orders:list_orders')
+    
+    return render(request, 'orders/mark_order_paid.html', {'commande': commande, 'caisse': caisse})
 
 
 @role_required(['Rtable', 'Radmin'])

@@ -18,7 +18,7 @@ def login_view(request):
             user = form.get_user()
             if user.is_active:
                 login(request, user)
-                messages.success(request, f'Bienvenue {user.login}!')
+                messages.success(request, f'Bienvenue {user.login} — Rôle : {user.get_role_display()}')
                 return redirect('authentication:redirect_after_login')
             else:
                 messages.error(request, 'Votre compte est désactivé.')

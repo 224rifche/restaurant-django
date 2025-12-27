@@ -3,16 +3,36 @@
 {% block title %}Créer table{% endblock %}
 
 {% block content %}
-<h1 class="h1">Créer une table</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🪑 Nouvelle Table</h1>
+        <p class="page-subtitle">Ajouter une table au restaurant</p>
+    </div>
+</div>
 
-<div class="card">
+<div class="card" style="max-width: 600px;">
+    <div class="card__header">
+        <h3 class="card__title">Informations de la table</h3>
+    </div>
+    
     <form method="post" class="form">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        {{ form.as_p }}
-        <div class="actions">
-            <button class="btn btn--primary" type="submit">Enregistrer</button>
-            <a class="btn" href="{% url 'tables:list_tables' %}">Annuler</a>
+        
+        {% if form.non_field_errors %}
+        <div class="message message--error">{{ form.non_field_errors }}</div>
+        {% endif %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            <label class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="btn-group" style="margin-top: 24px;">
+            <button class="btn btn--primary btn--lg" type="submit">✅ Créer la table</button>
+            <a class="btn btn--ghost" href="{% url 'tables:list_tables' %}">Annuler</a>
         </div>
     </form>
 </div>

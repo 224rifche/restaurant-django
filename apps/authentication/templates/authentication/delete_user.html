@@ -3,15 +3,33 @@
 {% block title %}Supprimer utilisateur{% endblock %}
 
 {% block content %}
-<h1 class="h1">Supprimer utilisateur</h1>
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Supprimer l'utilisateur</h1>
+        <p class="page-subtitle">Cette action est irréversible</p>
+    </div>
+</div>
 
-<div class="card">
-    <p>Confirmer la suppression de <strong>{{ user.login }}</strong> ?</p>
+<div class="card" style="max-width: 500px;">
+    <div style="text-align: center; padding: 20px;">
+        <div class="avatar avatar--lg" style="margin: 0 auto 16px; background: rgba(239, 68, 68, 0.2); color: var(--accent-danger);">
+            {{ object.login|slice:":2"|upper }}
+        </div>
+        <h3 style="margin: 0 0 8px;">{{ object.login }}</h3>
+        <span class="badge badge--neutral">{{ object.get_role_display }}</span>
+    </div>
+    
+    <div class="message message--warning" style="margin: 20px 0;">
+        ⚠️ Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est définitive.
+    </div>
 
-    <form method="post" class="actions">
+    <form method="post">
         {% csrf_token %}
-        <button class="btn btn--danger" type="submit">Supprimer</button>
-        <a class="btn" href="{% url 'authentication:list_users' %}">Annuler</a>
+        <div class="btn-group" style="justify-content: center;">
+            <button class="btn btn--danger btn--lg" type="submit">🗑️ Confirmer la suppression</button>
+            <a class="btn btn--ghost" href="{% url 'authentication:list_users' %}">Annuler</a>
+        </div>
     </form>
 </div>
 {% endblock %}
