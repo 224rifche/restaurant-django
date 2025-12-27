@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Caisse{% endblock %}
+
+{% block content %}
+<div class="actions" style="margin-bottom:12px;">
+    <h1 class="h1" style="margin:0;">Caisse</h1>
+    <a class="btn" href="{% url 'payments:liste_caisses' %}">Historique caisses</a>
+    <a class="btn" href="{% url 'payments:liste_sorties' %}">Sorties</a>
+    <a class="btn" href="{% url 'payments:liste_paiements' %}">Paiements</a>
+    <a class="btn" href="{% url 'payments:liste_types_depense' %}">Types dépense</a>
+</div>
+
+<div class="grid">
+    <div class="col-6">
+        <div class="card">
+            <div class="h2">Statut</div>
+            {% if caisse %}
+                <div>Ouverte: <span class="badge">Oui</span></div>
+                <div>Solde actuel: <span class="badge">{{ caisse.solde_actuel }}</span></div>
+                <div>Solde théorique: <span class="badge">{{ caisse.solde_theorique }}</span></div>
+                <div>Différence: <span class="badge">{{ caisse.difference }}</span></div>
+                <div class="actions" style="margin-top:12px;">
+                    <a class="btn" href="{% url 'payments:detail_caisse' caisse.id %}">Détails</a>
+                    <a class="btn btn--danger" href="{% url 'payments:fermer_caisse' caisse.id %}">Fermer</a>
+                </div>
+            {% else %}
+                <div class="badge">Aucune caisse ouverte</div>
+                <div class="actions" style="margin-top:12px;">
+                    <a class="btn btn--primary" href="{% url 'payments:ouvrir_caisse' %}">Ouvrir une caisse</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="card">
+            <div class="h2">Dernières opérations</div>
+            <div style="margin-top:8px;">
+                <div class="badge">Dernières sorties: {{ dernieres_sorties|length }}</div>
+                <div class="badge">Derniers paiements: {{ derniers_paiements|length }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

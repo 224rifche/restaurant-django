@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="h1">Dashboard</h1>
+
+<div class="grid">
+    <div class="col-6">
+        <div class="card">
+            <div class="h2">Caisse</div>
+            {% if caisse %}
+                <div>Solde actuel: <span class="badge">{{ caisse.solde_actuel }}</span></div>
+                <div>Date ouverture: <span class="badge">{{ caisse.date_ouverture }}</span></div>
+            {% else %}
+                <div class="badge">Aucune caisse ouverte</div>
+            {% endif %}
+            <div class="actions" style="margin-top:12px;">
+                <a class="btn btn--primary" href="{% url 'payments:dashboard_caisse' %}">Aller à la caisse</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6">
+        <div class="card">
+            <div class="h2">Commandes</div>
+            <div>En attente: <span class="badge">{{ commandes_en_attente }}</span></div>
+            <div>Servies: <span class="badge">{{ commandes_servies }}</span></div>
+            <div>Payées: <span class="badge">{{ commandes_payees }}</span></div>
+            <div class="actions" style="margin-top:12px;">
+                <a class="btn" href="{% url 'orders:list_orders' %}">Voir les commandes</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer table{% endblock %}
+
+{% block content %}
+<h1 class="h1">Supprimer table</h1>
+
+<div class="card">
+    <p>Confirmer la suppression de <strong>Table {{ table.numero_table }}</strong> ?</p>
+
+    <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">Supprimer</button>
+        <a class="btn" href="{% url 'tables:list_tables' %}">Annuler</a>
+    </form>
+</div>
+{% endblock %}

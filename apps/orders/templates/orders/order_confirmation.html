@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmation{% endblock %}
+
+{% block content %}
+<h1 class="h1">Commande confirmée</h1>
+
+<div class="card">
+    <div>Numéro: <span class="badge">{{ commande.numero_commande }}</span></div>
+    <div>Statut: <span class="badge">{{ commande.get_statut_display }}</span></div>
+    <div class="actions" style="margin-top:12px;">
+        <a class="btn btn--primary" href="{% url 'orders:view_order' commande.id %}">Voir la commande</a>
+        <a class="btn" href="{% url 'menu:list_dishes' %}">Retour au menu</a>
+    </div>
+</div>
+{% endblock %}

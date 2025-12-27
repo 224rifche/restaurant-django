@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique{% endblock %}
+
+{% block content %}
+<h1 class="h1">Historique des commandes</h1>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in commandes %}
+            <tr>
+                <td>{{ c.numero_commande }}</td>
+                <td><span class="badge">{{ c.get_statut_display }}</span></td>
+                <td>{{ c.date_commande }}</td>
+                <td><a class="btn" href="{% url 'orders:view_order' c.id %}">Voir</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Aucune commande.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

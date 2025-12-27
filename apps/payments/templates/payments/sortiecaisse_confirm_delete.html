@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer sortie{% endblock %}
+
+{% block content %}
+<h1 class="h1">Supprimer sortie</h1>
+
+<div class="card">
+    <p>Confirmer la suppression de cette sortie ?</p>
+    <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">Supprimer</button>
+        <a class="btn" href="{% url 'payments:liste_sorties' %}">Annuler</a>
+    </form>
+</div>
+{% endblock %}

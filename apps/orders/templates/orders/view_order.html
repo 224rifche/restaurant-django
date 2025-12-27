@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Commande{% endblock %}
+
+{% block content %}
+<h1 class="h1">Commande {{ commande.numero_commande }}</h1>
+
+<div class="grid">
+    <div class="col-6">
+        <div class="card">
+            <div>Table: <span class="badge">{{ commande.table.numero_table }}</span></div>
+            <div>Statut: <span class="badge">{{ commande.get_statut_display }}</span></div>
+            <div>Montant: <span class="badge">{{ commande.montant_total }}</span></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="h2">Articles</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Plat</th>
+                        <th>Qté</th>
+                        <th>Prix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for it in items %}
+                    <tr>
+                        <td>{{ it.plat.nom }}</td>
+                        <td>{{ it.quantite }}</td>
+                        <td><span class="badge">{{ it.prix_unitaire }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">Aucun article.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Restaurant{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'app.css' %}">
+</head>
+<body>
+<header class="topbar">
+    <div class="container topbar__inner">
+        <a class="brand" href="{% url 'authentication:redirect_after_login' %}">Restaurant</a>
+        <nav class="nav">
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                <a href="{% url 'menu:list_dishes' %}">Menu</a>
+                <a href="{% url 'tables:list_tables' %}">Tables</a>
+                <a href="{% url 'orders:view_cart' %}">Panier</a>
+                <a href="{% url 'orders:list_orders' %}">Commandes</a>
+                <a href="{% url 'payments:dashboard_caisse' %}">Caisse</a>
+                <a href="{% url 'authentication:list_users' %}">Utilisateurs</a>
+                <a class="nav__right" href="{% url 'authentication:logout' %}">Déconnexion</a>
+            {% else %}
+                <a class="nav__right" href="{% url 'authentication:login' %}">Connexion</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer plat{% endblock %}
+
+{% block content %}
+<h1 class="h1">Supprimer plat</h1>
+
+<div class="card">
+    <p>Confirmer la suppression de <strong>{{ plat.nom }}</strong> ?</p>
+
+    <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">Supprimer</button>
+        <a class="btn" href="{% url 'menu:manage_dishes' %}">Annuler</a>
+    </form>
+</div>
+{% endblock %}

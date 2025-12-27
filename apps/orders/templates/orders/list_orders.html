@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Commandes{% endblock %}
+
+{% block content %}
+<h1 class="h1">Commandes</h1>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Table</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in commandes %}
+            <tr>
+                <td>{{ c.numero_commande }}</td>
+                <td>{{ c.table.numero_table }}</td>
+                <td><span class="badge">{{ c.get_statut_display }}</span></td>
+                <td>{{ c.date_commande }}</td>
+                <td>
+                    <div class="actions">
+                        <a class="btn" href="{% url 'orders:view_order' c.id %}">Voir</a>
+                        {% if c.statut == 'en_attente' %}
+                            <a class="btn" href="{% url 'orders:mark_order_served' c.id %}">Marquer servie</a>
+                        {% endif %}
+                        {% if c.statut == 'servie' %}
+                            <a class="btn btn--success" href="{% url 'orders:mark_order_paid' c.id %}">Marquer payée</a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Aucune commande.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

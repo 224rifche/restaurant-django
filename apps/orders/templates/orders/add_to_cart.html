@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Ajouter au panier{% endblock %}
+
+{% block content %}
+<h1 class="h1">Ajouter au panier</h1>
+
+<div class="grid">
+    <div class="col-12">
+        <div class="card">
+            <div class="h2">{{ plat.nom }}</div>
+            <div>Prix: <span class="badge">{{ plat.prix_unitaire }}</span></div>
+            <form method="post" class="form" style="margin-top:12px;">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                {{ form.as_p }}
+                <div class="actions">
+                    <button class="btn btn--primary" type="submit">Ajouter</button>
+                    <a class="btn" href="{% url 'menu:list_dishes' %}">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

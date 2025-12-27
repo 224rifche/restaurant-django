@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Tables{% endblock %}
+
+{% block content %}
+<div class="actions" style="margin-bottom:12px;">
+    <h1 class="h1" style="margin:0;">Tables</h1>
+    <a class="btn btn--primary" href="{% url 'tables:create_table' %}">Créer une table</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Places</th>
+                <th>Utilisateur</th>
+                <th>Statut</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tables %}
+            <tr>
+                <td>{{ t.numero_table }}</td>
+                <td><span class="badge">{{ t.nombre_places }}</span></td>
+                <td>{% if t.user %}{{ t.user.login }}{% else %}-{% endif %}</td>
+                <td><span class="badge">{{ t.get_current_status_display }}</span></td>
+                <td>
+                    <div class="actions">
+                        <a class="btn" href="{% url 'tables:table_detail' t.id %}">Voir</a>
+                        <a class="btn" href="{% url 'tables:update_table' t.id %}">Modifier</a>
+                        <a class="btn btn--danger" href="{% url 'tables:delete_table' t.id %}">Supprimer</a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Aucune table.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

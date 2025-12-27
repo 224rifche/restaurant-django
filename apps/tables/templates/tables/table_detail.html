@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Table {{ table.numero_table }}{% endblock %}
+
+{% block content %}
+<h1 class="h1">Table {{ table.numero_table }}</h1>
+
+<div class="grid">
+    <div class="col-6">
+        <div class="card">
+            <div class="h2">Infos</div>
+            <div>Places: <span class="badge">{{ table.nombre_places }}</span></div>
+            <div>Statut: <span class="badge">{{ table.get_current_status_display }}</span></div>
+            <div>Utilisateur: <span class="badge">{% if table.user %}{{ table.user.login }}{% else %}-{% endif %}</span></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="h2">Commandes</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Numéro</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in commandes %}
+                    <tr>
+                        <td>{{ c.numero_commande }}</td>
+                        <td><span class="badge">{{ c.get_statut_display }}</span></td>
+                        <td>{{ c.date_commande }}</td>
+                        <td><a class="btn" href="{% url 'orders:view_order' c.id %}">Voir</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Aucune commande.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

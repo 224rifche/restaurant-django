@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Sorties{% endblock %}
+
+{% block content %}
+<div class="actions" style="margin-bottom:12px;">
+    <h1 class="h1" style="margin:0;">Sorties de caisse</h1>
+    <a class="btn btn--primary" href="{% url 'payments:creer_sortie' %}">Nouvelle sortie</a>
+</div>
+
+<div class="card">
+    <table class="table">
+        <thead><tr><th>Type</th><th>Montant</th><th>Motif</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+            {% for s in sorties %}
+            <tr>
+                <td>{{ s.type_depense.nom }}</td>
+                <td><span class="badge">{{ s.montant }}</span></td>
+                <td>{{ s.motif }}</td>
+                <td>{{ s.date_sortie }}</td>
+                <td><a class="btn" href="{% url 'payments:detail_sortie' s.id %}">Voir</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">Aucune sortie.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

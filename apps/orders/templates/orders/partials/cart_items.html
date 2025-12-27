@@ -1,0 +1,15 @@
+{% for item in items %}
+<div class="card" style="margin-bottom:10px;">
+    <div class="actions">
+        <div>
+            <strong>{{ item.plat.nom }}</strong>
+            <div class="badge">Qté: {{ item.quantite }}</div>
+        </div>
+        <a class="btn" href="{% url 'orders:update_cart_item' item.id %}">Modifier</a>
+        <a class="btn btn--danger" href="{% url 'orders:remove_from_cart' item.id %}">Retirer</a>
+    </div>
+</div>
+{% empty %}
+<div class="card">Panier vide.</div>
+{% endfor %}
+<div style="margin-top:10px;">Total: <span class="badge">{{ total }}</span></div>

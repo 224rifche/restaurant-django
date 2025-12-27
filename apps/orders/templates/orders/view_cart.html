@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Panier{% endblock %}
+
+{% block content %}
+<div class="actions" style="margin-bottom:12px;">
+    <h1 class="h1" style="margin:0;">Panier</h1>
+    <a class="btn" href="{% url 'menu:list_dishes' %}">Retour au menu</a>
+    <a class="btn btn--primary" href="{% url 'orders:create_order' %}">Commander</a>
+</div>
+
+<div class="card">
+    {% if panier %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Plat</th>
+                    <th>Qté</th>
+                    <th>Prix</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.plat.nom }}</td>
+                    <td>{{ item.quantite }}</td>
+                    <td><span class="badge">{{ item.prix_unitaire }}</span></td>
+                    <td><span class="badge">{{ item.quantite|add:0 }} x {{ item.prix_unitaire }}</span></td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn" href="{% url 'orders:update_cart_item' item.id %}">Modifier</a>
+                            <a class="btn btn--danger" href="{% url 'orders:remove_from_cart' item.id %}">Retirer</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Panier vide.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div style="margin-top:12px;">Total: <span class="badge">{{ total }}</span></div>
+    {% else %}
+        <div>Panier vide.</div>
+    {% endif %}
+</div>
+{% endblock %}
