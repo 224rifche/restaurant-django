@@ -26,6 +26,11 @@
         <div class="form-group">
             <label class="form-label">{{ field.label }}</label>
             {{ field }}
+            {% if field.name == 'user' and field.field.queryset.count == 0 %}
+                <span class="form-hint">
+                    Aucun utilisateur Table disponible. Crée d'abord un utilisateur avec le rôle Table, puis reviens ici.
+                </span>
+            {% endif %}
             {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
         </div>
         {% endfor %}

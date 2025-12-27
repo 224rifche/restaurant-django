@@ -49,12 +49,26 @@
                 <label class="form-label">Rôle *</label>
                 <select name="role" class="form-select" required>
                     <option value="">Sélectionnez un rôle...</option>
-                    <option value="Rtable">🪑 Table (Client)</option>
-                    <option value="Rservent">🍽️ Serveur/Servante</option>
-                    <option value="Rcuisinier">👨‍🍳 Cuisinier</option>
-                    <option value="Rcomptable">💰 Comptable</option>
-                    <option value="Radmin">👑 Administrateur</option>
+                    <option value="Rtable" {% if request.POST.role == 'Rtable' %}selected{% endif %}>🪑 Table (Client)</option>
+                    <option value="Rservent" {% if request.POST.role == 'Rservent' %}selected{% endif %}>🍽️ Serveur/Servante</option>
+                    <option value="Rcuisinier" {% if request.POST.role == 'Rcuisinier' %}selected{% endif %}>👨‍🍳 Cuisinier</option>
+                    <option value="Rcomptable" {% if request.POST.role == 'Rcomptable' %}selected{% endif %}>💰 Comptable</option>
+                    <option value="Radmin" {% if request.POST.role == 'Radmin' %}selected{% endif %}>👑 Administrateur</option>
                 </select>
+            </div>
+
+            <div id="table-fields" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">Numéro de table *</label>
+                    <input type="text" name="table_number" class="form-input" placeholder="Ex: T01" value="{{ request.POST.table_number|default:'' }}">
+                    <span class="form-hint">Obligatoire si le rôle est Table</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nombre de places *</label>
+                    <input type="number" name="seats" class="form-input" min="1" step="1" value="{{ request.POST.seats|default:'4' }}">
+                    <span class="form-hint">Ex: 2, 4, 6</span>
+                </div>
             </div>
 
             <div class="btn-group" style="margin-top: 24px;">
@@ -77,4 +91,25 @@
         </div>
     </div>
 </div>
+
+<script>
+(() => {
+  const roleSelect = document.querySelector('select[name="role"]');
+  const tableFields = document.getElementById('table-fields');
+  const tableNumberInput = document.querySelector('input[name="table_number"]');
+  const seatsInput = document.querySelector('input[name="seats"]');
+
+  if (!roleSelect || !tableFields || !tableNumberInput || !seatsInput) return;
+
+  const sync = () => {
+    const isTable = roleSelect.value === 'Rtable';
+    tableFields.style.display = isTable ? 'block' : 'none';
+    tableNumberInput.required = isTable;
+    seatsInput.required = isTable;
+  };
+
+  roleSelect.addEventListener('change', sync);
+  sync();
+})();
+</script>
 {% endblock %}

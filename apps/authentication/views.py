@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, IntegrityError
+from django.db.models.deletion import ProtectedError
 from .forms import CustomLoginForm, CustomUserCreationForm, CustomUserUpdateForm
 from .models import CustomUser
 from .decorators import role_required
@@ -66,23 +67,46 @@ def create_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            with transaction.atomic():
-                user = form.save()
-                
-                if user.role == 'Rtable':
+            role = form.cleaned_data.get('role')
+            table_number = (request.POST.get('table_number') or '').strip()
+            seats_raw = (request.POST.get('seats') or '').strip()
+            seats = None
+
+            if role == 'Rtable':
+                if not table_number:
+                    form.add_error(None, "Le numéro de table est obligatoire pour le rôle Table.")
+                try:
+                    seats = int(seats_raw)
+                    if seats < 1:
+                        raise ValueError
+                except (TypeError, ValueError):
+                    form.add_error(None, "Le nombre de places doit être un nombre entier supérieur ou égal à 1.")
+
+                if table_number:
                     from apps.tables.models import TableRestaurant
-                    table_number = request.POST.get('table_number')
-                    seats = request.POST.get('seats', 4)
-                    
-                    if table_number:
+                    if TableRestaurant.objects.filter(numero_table=table_number).exists():
+                        form.add_error(None, "Ce numéro de table existe déjà.")
+
+            if form.errors:
+                return render(request, 'authentication/create_user.html', {'form': form})
+
+            try:
+                with transaction.atomic():
+                    user = form.save()
+
+                    if role == 'Rtable':
+                        from apps.tables.models import TableRestaurant
                         TableRestaurant.objects.create(
                             numero_table=table_number,
                             nombre_places=seats,
                             user=user
                         )
-                
+
                 messages.success(request, f'Utilisateur {user.login} créé avec succès.')
                 return redirect('authentication:list_users')
+            except IntegrityError:
+                form.add_error(None, "Erreur lors de la création : ce numéro de table est déjà utilisé.")
+                return render(request, 'authentication/create_user.html', {'form': form})
         else:
             messages.error(request, 'Erreur lors de la création de l\'utilisateur.')
     else:
@@ -115,9 +139,63 @@ def delete_user(request, user_id):
         if user == request.user:
             messages.error(request, 'Vous ne pouvez pas supprimer votre propre compte.')
         else:
+            if request.POST.get('force_delete') == '1':
+                if user.login == 'system00':
+                    messages.error(request, "Vous ne pouvez pas supprimer l'utilisateur système.")
+                    return redirect('authentication:list_users')
+
+                def get_system_user():
+                    system_user, created = CustomUser.objects.get_or_create(
+                        login='system00',
+                        defaults={
+                            'role': 'Radmin',
+                            'is_active': False,
+                            'is_staff': False,
+                        }
+                    )
+                    if created:
+                        system_user.set_unusable_password()
+                        system_user.save(update_fields=['password'])
+                    return system_user
+
+                login_to_delete = user.login
+                system_user = get_system_user()
+                try:
+                    with transaction.atomic():
+                        from apps.payments.models import Caisse, Paiement, SortieCaisse
+                        from apps.expenses.models import Depense
+
+                        Caisse.objects.filter(utilisateur_ouverture=user).update(utilisateur_ouverture=system_user)
+                        Caisse.objects.filter(utilisateur_fermeture=user).update(utilisateur_fermeture=system_user)
+                        Paiement.objects.filter(utilisateur=user).update(utilisateur=system_user)
+                        SortieCaisse.objects.filter(utilisateur=user).update(utilisateur=system_user)
+                        Depense.objects.filter(utilisateur=user).update(utilisateur=system_user)
+
+                        user.delete()
+
+                    messages.success(
+                        request,
+                        f"Utilisateur {login_to_delete} supprimé définitivement. Les historiques ont été réaffectés au compte système."
+                    )
+                except ProtectedError:
+                    messages.error(
+                        request,
+                        "Suppression définitive impossible : l'utilisateur est encore référencé par d'autres éléments protégés."
+                    )
+                return redirect('authentication:list_users')
+
             login_to_delete = user.login
-            user.delete()
-            messages.success(request, f'Utilisateur {login_to_delete} supprimé avec succès.')
+            try:
+                user.delete()
+                messages.success(request, f'Utilisateur {login_to_delete} supprimé avec succès.')
+            except ProtectedError:
+                user.is_active = False
+                user.save(update_fields=['is_active'])
+                messages.warning(
+                    request,
+                    "Impossible de supprimer cet utilisateur car il est lié à des opérations (caisse/paiements/dépenses). "
+                    "Le compte a été désactivé à la place."
+                )
         return redirect('authentication:list_users')
     
     return render(request, 'authentication/delete_user.html', {'user': user})

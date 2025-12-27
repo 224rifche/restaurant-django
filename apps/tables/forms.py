@@ -1,4 +1,5 @@
 from django import forms
+from django.db.models import Q
 from .models import TableRestaurant
 
 
@@ -24,4 +25,12 @@ class TableRestaurantForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.authentication.models import CustomUser
-        self.fields['user'].queryset = CustomUser.objects.filter(role='Rtable')
+        self.fields['user'].empty_label = "Sélectionnez un utilisateur..."
+
+        base_qs = CustomUser.objects.filter(role='Rtable', table__isnull=True)
+        if self.instance and getattr(self.instance, 'pk', None) and getattr(self.instance, 'user_id', None):
+            self.fields['user'].queryset = CustomUser.objects.filter(
+                Q(pk=self.instance.user_id) | Q(role='Rtable', table__isnull=True)
+            )
+        else:
+            self.fields['user'].queryset = base_qs
