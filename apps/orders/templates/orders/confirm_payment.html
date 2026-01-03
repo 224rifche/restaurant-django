@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load gnf %}
+
+{% block title %}Confirmation de paiement - {{ commande.numero_commande }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✅ Confirmation de paiement</h1>
+        <p class="page-subtitle">Commande {{ commande.numero_commande }} • Table {{ commande.table.numero_table }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">↩️ Retour</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 720px; margin: 0 auto;">
+    <div class="card__header" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+        <h3 class="card__title">💳 Détails de la transaction</h3>
+        <span class="badge badge--success">À confirmer</span>
+    </div>
+
+    <div class="activity-list" style="padding: 20px 24px;">
+        <div class="activity-item" style="padding: 14px 0;">
+            <div class="activity-item__icon" style="background: rgba(16, 185, 129, 0.15);">💰</div>
+            <div class="activity-item__content" style="flex: 1;">
+                <div class="activity-item__title">Montant</div>
+                <div class="activity-item__time">Montant total de la commande</div>
+            </div>
+            <div style="font-weight: 800; font-size: 22px; color: var(--accent-success);">{{ commande.montant_total|gnf }}</div>
+        </div>
+
+        <div class="activity-item" style="padding: 14px 0;">
+            <div class="activity-item__icon" style="background: rgba(47, 107, 255, 0.15);">🧾</div>
+            <div class="activity-item__content" style="flex: 1;">
+                <div class="activity-item__title">Référence</div>
+                <div class="activity-item__time">ID Transaction</div>
+            </div>
+            <div style="font-weight: 700;">#{{ paiement.id|stringformat:"06d" }}</div>
+        </div>
+
+        <div class="activity-item" style="padding: 14px 0;">
+            <div class="activity-item__icon" style="background: rgba(245, 158, 11, 0.15);">🏷️</div>
+            <div class="activity-item__content" style="flex: 1;">
+                <div class="activity-item__title">Mode de paiement</div>
+                <div class="activity-item__time">Choisi lors de l'encaissement</div>
+            </div>
+            <div style="font-weight: 700;">{{ paiement.get_mode_paiement_display }}</div>
+        </div>
+
+        <div class="activity-item" style="padding: 14px 0;">
+            <div class="activity-item__icon" style="background: rgba(6, 182, 212, 0.15);">🕒</div>
+            <div class="activity-item__content" style="flex: 1;">
+                <div class="activity-item__title">Date commande</div>
+                <div class="activity-item__time">Création de la commande</div>
+            </div>
+            <div style="font-weight: 700;">{{ commande.date_commande|date:"d/m/Y H:i" }}</div>
+        </div>
+    </div>
+
+    <div class="message message--warning" style="margin: 0 24px 16px;">
+        ⚠️ Vérifie que le montant correspond bien au paiement reçu avant de confirmer.
+    </div>
+
+    <form method="post" style="padding: 0 24px 24px;">
+        {% csrf_token %}
+        <div class="btn-group" style="justify-content: flex-end;">
+            <button type="submit" name="cancel" class="btn btn--danger">✖️ Annuler</button>
+            <button type="submit" name="confirm" class="btn btn--success">✅ Confirmer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

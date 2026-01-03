@@ -5,11 +5,29 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Restaurant{% endblock %} | Gestion Restaurant</title>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="{% static 'tailwind.css' %}?v={% now 'U' %}">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'app.css' %}?v={% now 'U' %}">
+    
+    <!-- Flowbite CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.1/dist/flowbite.min.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 {% if request.user.is_authenticated %}
@@ -237,5 +255,57 @@
 {% endif %}
 
 {% block extra_js %}{% endblock %}
+
+<!-- Flowbite JS -->
+<script src="https://unpkg.com/flowbite@1.5.1/dist/flowbite.js"></script>
+
+<!-- Tw Elements JS -->
+<script src="https://cdn.jsdelivr.net/npm/tw-elements/dist/js/tw-elements.umd.min.js"></script>
+
+<!-- Custom JS -->
+<script>
+  // Scripts personnalisés ici
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation des composants
+    if (typeof Flowbite !== 'undefined') {
+      const flowbite = new Flowbite();
+    }
+    
+    // Gestion du menu mobile
+    const mobileMenuButton = document.querySelector('[data-drawer-toggle="mobile-menu"]');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+      });
+    }
+
+    // Conserver / restaurer la position de scroll entre navigations
+    try {
+      const key = 'scroll:' + window.location.pathname + window.location.search;
+      const saved = sessionStorage.getItem(key);
+      if (saved !== null) {
+        const y = parseInt(saved, 10);
+        if (!Number.isNaN(y)) {
+          window.scrollTo(0, y);
+        }
+      }
+
+      let ticking = false;
+      window.addEventListener('scroll', function() {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function() {
+          sessionStorage.setItem(key, String(window.scrollY || 0));
+          ticking = false;
+        });
+      }, { passive: true });
+    } catch (e) {
+      // ignore
+    }
+  });
+</script>
+
 </body>
 </html>

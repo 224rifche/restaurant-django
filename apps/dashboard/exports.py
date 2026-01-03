@@ -86,11 +86,11 @@ def export_ventes_excel(request):
     ws_resume['A5'].font = Font(bold=True, size=14)
     
     stats = [
-        ("Total des ventes", f"{total_ventes}€"),
+        ("Total des ventes", f"{total_ventes} GNF"),
         ("Nombre de commandes", nb_commandes),
-        ("Panier moyen", f"{(total_ventes / nb_commandes if nb_commandes > 0 else 0):.2f}€"),
-        ("Total des dépenses", f"{total_depenses}€"),
-        ("Bénéfice net", f"{total_ventes - total_depenses}€"),
+        ("Panier moyen", f"{(total_ventes / nb_commandes if nb_commandes > 0 else 0):.2f} GNF"),
+        ("Total des dépenses", f"{total_depenses} GNF"),
+        ("Bénéfice net", f"{total_ventes - total_depenses} GNF"),
     ]
     
     for i, (label, value) in enumerate(stats, start=6):
@@ -232,11 +232,11 @@ def export_ventes_pdf(request):
     
     summary_data = [
         ["Indicateur", "Valeur"],
-        ["Total des ventes", f"{total_ventes}€"],
+        ["Total des ventes", f"{total_ventes} GNF"],
         ["Nombre de commandes", str(nb_commandes)],
-        ["Panier moyen", f"{(total_ventes / nb_commandes if nb_commandes > 0 else 0):.2f}€"],
-        ["Total des dépenses", f"{total_depenses}€"],
-        ["Bénéfice net", f"{total_ventes - total_depenses}€"],
+        ["Panier moyen", f"{(total_ventes / nb_commandes if nb_commandes > 0 else 0):.2f} GNF"],
+        ["Total des dépenses", f"{total_depenses} GNF"],
+        ["Bénéfice net", f"{total_ventes - total_depenses} GNF"],
     ]
     
     summary_table = Table(summary_data, colWidths=[8*cm, 6*cm])
@@ -264,7 +264,7 @@ def export_ventes_pdf(request):
                 p.date_paiement.strftime('%d/%m/%Y'),
                 p.commande.numero_commande,
                 p.commande.table.numero_table,
-                f"{p.montant}€",
+                f"{p.montant} GNF",
                 p.get_mode_paiement_display()
             ])
         

@@ -23,7 +23,7 @@ from .forms import (
 
 # Vues pour la gestion de la caisse
 @login_required
-@role_required(['Rservent', 'Radmin', 'Rcomptable'])
+@role_required(['Rservent', 'Radmin', 'Rcomptable', 'Rcaissier'])
 def dashboard_caisse(request):
     caisse = Caisse.get_caisse_ouverte()
     dernieres_sorties = SortieCaisse.objects.select_related('type_depense', 'utilisateur').order_by('-date_sortie')[:5]
@@ -197,7 +197,7 @@ class PaiementCreateView(LoginRequiredMixin, CreateView):
         
         # S'assurer que le montant correspond à celui de la commande
         if form.cleaned_data['montant'] != commande.montant_total:
-            form.add_error('montant', f'Le montant doit être de {commande.montant_total} €')
+            form.add_error('montant', f'Le montant doit être de {commande.montant_total} GNF')
             return self.form_invalid(form)
         
         # Ajouter la caisse et l'utilisateur
@@ -459,7 +459,7 @@ def ajouter_fond_caisse(request):
             return JsonResponse({
                 'success': True,
                 'solde_actuel': str(caisse.solde_actuel),
-                'message': f'Fond de caisse augmenté de {montant} € avec succès.'
+                'message': f'Fond de caisse augmenté de {montant} GNF avec succès.'
             })
         else:
             return JsonResponse({

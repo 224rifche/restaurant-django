@@ -174,6 +174,11 @@ class Paiement(models.Model):
         related_name='paiements_effectues',
         verbose_name='Encaissé par'
     )
+    est_valide = models.BooleanField(
+        default=False,
+        verbose_name='Paiement validé ?',
+        help_text='Cocher pour confirmer que le paiement a bien été effectué.'
+    )
     notes = models.TextField(
         blank=True,
         verbose_name='Notes complémentaires'
@@ -190,33 +195,39 @@ class Paiement(models.Model):
         ]
 
     def __str__(self):
-        return f'Paiement {self.id} - {self.commande.numero_commande} - {self.montant} €'
+        return f'Paiement {self.id} - {self.commande.numero_commande} - {self.montant} GNF'
     
     def save(self, *args, **kwargs):
-        # S'assurer que le montant correspond à celui de la commande
-        if not self.pk:  # Nouveau paiement
-            self.montant = self.commande.montant_total
+        from django.core.exceptions import ValidationError
+        
+        # Vérifier si c'est un nouveau paiement
+        if not self.pk:
+            # Vérifier qu'un paiement n'existe pas déjà pour cette commande
+            if Paiement.objects.filter(commande=self.commande).exists():
+                raise ValidationError("Un paiement existe déjà pour cette commande.")
             
-            # Vérifier qu'il n'y a pas déjà un paiement pour cette commande
-            if hasattr(self.commande, 'paiement'):
-                raise ValueError('Un paiement existe déjà pour cette commande.')
+            # Vérifier que la caisse est ouverte
+            if not self.caisse.est_ouverte:
+                raise ValidationError("Impossible d'enregistrer un paiement sur une caisse fermée.")
             
-            # Vérifier que la commande est bien marquée comme payée
-            if self.commande.statut != 'payee':
-                self.commande.statut = 'payee'
-                self.commande.save()
-            
-            # S'assurer qu'une caisse est ouverte
-            if not hasattr(self, 'caisse'):
-                caisse = Caisse.get_caisse_ouverte()
-                if not caisse:
-                    raise ValueError('Aucune caisse n\'est ouverte. Veuillez ouvrir une caisse avant d\'enregistrer un paiement.')
-                self.caisse = caisse
-            
-            # Enregistrer l'utilisateur actuel
+            # Définir l'utilisateur actuel
             if not hasattr(self, 'utilisateur') and hasattr(self, '_request'):
                 self.utilisateur = self._request.user
         
+        # Si le paiement est marqué comme valide, mettre à jour la commande et la caisse
+        if self.est_valide:
+            # Mettre à jour le statut de la commande
+            self.commande.statut = 'payee'
+            self.commande.save()
+            
+            # Mettre à jour le solde de la caisse
+            self.caisse.solde_actuel += self.montant
+            self.caisse.save()
+        
+        # Mettre à jour la date de paiement
+        self.date_paiement = timezone.now()
+        
+        # Appeler la méthode save() de la classe parente
         super().save(*args, **kwargs)
 
 
@@ -295,7 +306,7 @@ class SortieCaisse(models.Model):
         ]
 
     def __str__(self):
-        return f'Sortie de caisse #{self.id} - {self.motif} - {self.montant} €'
+        return f'Sortie de caisse #{self.id} - {self.motif} - {self.montant} GNF'
     
     def save(self, *args, **kwargs):
         # S'assurer qu'une caisse est ouverte

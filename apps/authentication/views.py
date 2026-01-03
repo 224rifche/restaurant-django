@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.views.decorators.cache import never_cache
 from django.db import transaction, IntegrityError
 from django.db.models.deletion import ProtectedError
 from .forms import CustomLoginForm, CustomUserCreationForm, CustomUserUpdateForm
@@ -9,6 +10,7 @@ from .models import CustomUser
 from .decorators import role_required
 
 
+@never_cache
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('authentication:redirect_after_login')
@@ -41,6 +43,8 @@ def redirect_after_login(request):
         return redirect('tables:list_tables')
     elif user.role == 'Rcuisinier':
         return redirect('menu:manage_dishes')
+    elif user.role == 'Rcaissier':
+        return redirect('orders:list_orders')
     elif user.role == 'Rcomptable':
         return redirect('payments:dashboard_caisse')
     elif user.role == 'Radmin':
@@ -50,6 +54,7 @@ def redirect_after_login(request):
 
 
 @login_required
+@never_cache
 def logout_view(request):
     logout(request)
     messages.success(request, 'Vous avez été déconnecté avec succès.')
@@ -164,13 +169,24 @@ def delete_user(request, user_id):
                     with transaction.atomic():
                         from apps.payments.models import Caisse, Paiement, SortieCaisse
                         from apps.expenses.models import Depense
+                        from apps.tables.models import TableRestaurant
 
+                        # Mettre à jour les références dans les autres modèles
                         Caisse.objects.filter(utilisateur_ouverture=user).update(utilisateur_ouverture=system_user)
                         Caisse.objects.filter(utilisateur_fermeture=user).update(utilisateur_fermeture=system_user)
                         Paiement.objects.filter(utilisateur=user).update(utilisateur=system_user)
                         SortieCaisse.objects.filter(utilisateur=user).update(utilisateur=system_user)
                         Depense.objects.filter(utilisateur=user).update(utilisateur=system_user)
+                        
+                        # Mettre à jour les références dans les tables
+                        # D'abord récupérer toutes les tables liées à l'utilisateur
+                        tables = TableRestaurant.objects.filter(user=user)
+                        # Mettre à jour chaque table individuellement
+                        for table in tables:
+                            table.user = None
+                            table.save(update_fields=['user'])
 
+                        # Maintenant, supprimer l'utilisateur
                         user.delete()
 
                     messages.success(

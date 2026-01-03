@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Détails caisse{% endblock %}
 
@@ -19,12 +20,12 @@
     </div>
     <div class="stat-card">
         <div class="stat-card__icon">💵</div>
-        <div class="stat-card__value">{{ caisse.solde_initial }}€</div>
+        <div class="stat-card__value">{{ caisse.solde_initial|gnf }}</div>
         <div class="stat-card__label">Solde initial</div>
     </div>
     <div class="stat-card stat-card--success">
         <div class="stat-card__icon">💰</div>
-        <div class="stat-card__value">{{ caisse.solde_actuel }}€</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel|gnf }}</div>
         <div class="stat-card__label">Solde actuel</div>
     </div>
     <div class="stat-card">
@@ -49,7 +50,7 @@
                     <div class="activity-item__title">{{ p.commande.numero_commande }}</div>
                     <div class="activity-item__time">{{ p.date_paiement|date:"H:i" }} • {{ p.get_mode_paiement_display }}</div>
                 </div>
-                <div class="activity-item__amount activity-item__amount--positive">+{{ p.montant }}€</div>
+                <div class="activity-item__amount activity-item__amount--positive">+{{ p.montant|gnf }}</div>
             </div>
             {% endfor %}
         </div>
@@ -72,7 +73,7 @@
                     <div class="activity-item__title">{{ s.type_depense.nom }}</div>
                     <div class="activity-item__time">{{ s.date_sortie|date:"H:i" }} • {{ s.motif|truncatechars:20 }}</div>
                 </div>
-                <div class="activity-item__amount activity-item__amount--negative">-{{ s.montant }}€</div>
+                <div class="activity-item__amount activity-item__amount--negative">-{{ s.montant|gnf }}</div>
             </div>
             {% endfor %}
         </div>

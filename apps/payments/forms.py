@@ -222,7 +222,7 @@ class FermetureCaisseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['solde_actuel'].initial = self.instance.solde_theorique
-        self.fields['solde_actuel'].help_text = f"Solde théorique: {self.instance.solde_theorique} €"
+        self.fields['solde_actuel'].help_text = f"Solde théorique: {self.instance.solde_theorique} GNF"
     
     def clean_solde_actuel(self):
         solde_actuel = self.cleaned_data.get('solde_actuel')

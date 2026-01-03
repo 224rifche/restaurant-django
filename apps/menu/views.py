@@ -1,14 +1,28 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from apps.authentication.decorators import role_required
-from .models import Plat
+from django.db.models import Q
+from .models import Plat, CategoriePlat
 from .forms import PlatForm
 
 
 @role_required(['Rtable', 'Radmin'])
 def list_dishes(request):
-    plats = Plat.objects.filter(disponible=True).order_by('nom')
-    return render(request, 'menu/list_dishes.html', {'plats': plats})
+    categories = list(CategoriePlat.objects.order_by('ordre', 'nom').values_list('nom', flat=True))
+    q = (request.GET.get('q') or '').strip()
+    cat = (request.GET.get('cat') or '').strip()
+    plats = Plat.objects.filter(disponible=True)
+    if cat and (not categories or cat in categories):
+        plats = plats.filter(categorie=cat)
+    if q:
+        plats = plats.filter(Q(nom__icontains=q) | Q(description__icontains=q))
+    plats = plats.order_by('nom')
+    return render(request, 'menu/list_dishes.html', {
+        'plats': plats,
+        'q': q,
+        'categories': categories,
+        'selected_cat': cat,
+    })
 
 
 @role_required(['Rcuisinier', 'Radmin'])

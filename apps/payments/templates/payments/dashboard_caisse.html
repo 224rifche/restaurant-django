@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Caisse{% endblock %}
 
@@ -43,19 +44,19 @@
     
     <div class="stat-card stat-card--primary">
         <div class="stat-card__icon">💵</div>
-        <div class="stat-card__value">{{ caisse.solde_actuel|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel|gnf }}</div>
         <div class="stat-card__label">Solde actuel</div>
     </div>
     
     <div class="stat-card stat-card--info">
         <div class="stat-card__icon">📊</div>
-        <div class="stat-card__value">{{ caisse.solde_theorique|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ caisse.solde_theorique|gnf }}</div>
         <div class="stat-card__label">Solde théorique</div>
     </div>
     
     <div class="stat-card {% if caisse.difference == 0 %}stat-card--success{% elif caisse.difference > 0 %}stat-card--warning{% else %}stat-card--danger{% endif %}">
         <div class="stat-card__icon">⚖️</div>
-        <div class="stat-card__value">{{ caisse.difference|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ caisse.difference|gnf }}</div>
         <div class="stat-card__label">Différence</div>
         {% if caisse.difference == 0 %}
             <span class="badge badge--success" style="margin-top: 8px;">Équilibrée</span>
@@ -83,7 +84,7 @@
                     <div class="activity-item__title">{{ paiement.commande.numero_commande }}</div>
                     <div class="activity-item__time">{{ paiement.date_paiement|timesince }} • {{ paiement.get_mode_paiement_display }}</div>
                 </div>
-                <div class="activity-item__amount activity-item__amount--positive">+{{ paiement.montant }}€</div>
+                <div class="activity-item__amount activity-item__amount--positive">+{{ paiement.montant|gnf }}</div>
             </div>
             {% empty %}
             <div class="empty-state">
@@ -109,7 +110,7 @@
                     <div class="activity-item__title">{{ sortie.motif|truncatechars:30 }}</div>
                     <div class="activity-item__time">{{ sortie.date_sortie|timesince }} • {{ sortie.type_depense.nom }}</div>
                 </div>
-                <div class="activity-item__amount activity-item__amount--negative">-{{ sortie.montant }}€</div>
+                <div class="activity-item__amount activity-item__amount--negative">-{{ sortie.montant|gnf }}</div>
             </div>
             {% empty %}
             <div class="empty-state">

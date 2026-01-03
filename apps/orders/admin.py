@@ -91,15 +91,15 @@ class CommandeAdmin(admin.ModelAdmin):
             <tr>
                 <td>{item.plat.nom}</td>
                 <td>{item.quantite}</td>
-                <td>{item.prix_unitaire} €</td>
-                <td>{item.total} €</td>
+                <td>{item.prix_unitaire} GNF</td>
+                <td>{item.total} GNF</td>
             </tr>
             """
         
         items_html += f"""
         <tr>
             <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
-            <td><strong>{obj.montant_total} €</strong></td>
+            <td><strong>{obj.montant_total} GNF</strong></td>
         </tr>
         """
         items_html += "</table>"

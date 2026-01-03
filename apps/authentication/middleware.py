@@ -28,11 +28,18 @@ class RoleBasedAccessMiddleware:
                 '/payments/',       # Consultation paiements et caisse
                 '/expenses/',       # Enregistrement des dépenses
             ],
+            'Rcaissier': [
+                '/orders/',         # Commandes (encaissement)
+                '/payments/',       # Caisse + historique paiements
+                '/tables/',         # Suivi tables
+            ],
             'Rcuisinier': [
-                '/menu/manage/',    # Gestion des plats (ajouter, modifier, activer/désactiver)
-                '/menu/create/',
-                '/menu/update/',
-                '/menu/toggle/',
+                '/menu/manage',    # Gestion des plats (ajouter, modifier, activer/désactiver)
+                '/menu/create',
+                '/menu/update',
+                '/menu/toggle',
+                '/menu/delete',
+                '/menu/',          # Pour la redirection après connexion
             ],
             'Rservent': [
                 '/tables/',         # Visualisation des tables

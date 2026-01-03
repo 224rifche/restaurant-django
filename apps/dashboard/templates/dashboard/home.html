@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -21,10 +22,10 @@
 <div class="stats-grid">
     <div class="stat-card stat-card--primary">
         <div class="stat-card__icon">💰</div>
-        <div class="stat-card__value">{{ ca_today|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ ca_today|gnf }}</div>
         <div class="stat-card__label">Chiffre d'affaires aujourd'hui</div>
         {% if ca_week > 0 %}
-        <div class="stat-card__trend stat-card__trend--up">📈 {{ ca_week|floatformat:0 }}€ cette semaine</div>
+        <div class="stat-card__trend stat-card__trend--up">📈 {{ ca_week|gnf }} cette semaine</div>
         {% endif %}
     </div>
     
@@ -60,20 +61,20 @@
     
     <div class="stat-card">
         <div class="stat-card__icon">📊</div>
-        <div class="stat-card__value">{{ commande_moyenne }}€</div>
+        <div class="stat-card__value">{{ commande_moyenne|gnf }}</div>
         <div class="stat-card__label">Panier moyen (30j)</div>
     </div>
     
     <div class="stat-card stat-card--danger">
         <div class="stat-card__icon">📤</div>
-        <div class="stat-card__value">{{ depenses_today|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ depenses_today|gnf }}</div>
         <div class="stat-card__label">Dépenses aujourd'hui</div>
     </div>
     
     {% if caisse %}
     <div class="stat-card stat-card--success">
         <div class="stat-card__icon">🏦</div>
-        <div class="stat-card__value">{{ caisse.solde_actuel|floatformat:2 }}€</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel|gnf }}</div>
         <div class="stat-card__label">Solde caisse</div>
         <span class="badge badge--success" style="margin-top: 8px;">Caisse ouverte</span>
     </div>
@@ -149,7 +150,7 @@
                     <div class="activity-item__time">{{ commande.date_commande|timesince }}</div>
                 </div>
                 <div class="activity-item__amount activity-item__amount--positive">
-                    {{ commande.montant_total }}€
+                    {{ commande.montant_total|gnf }}
                 </div>
             </div>
             {% empty %}
@@ -177,7 +178,7 @@
                     <div class="activity-item__time">{{ paiement.date_paiement|timesince }} • {{ paiement.get_mode_paiement_display }}</div>
                 </div>
                 <div class="activity-item__amount activity-item__amount--positive">
-                    +{{ paiement.montant }}€
+                    +{{ paiement.montant|gnf }}
                 </div>
             </div>
             {% empty %}
@@ -235,7 +236,7 @@
                     <div class="activity-item__time">{{ depense.date_sortie|timesince }} • {{ depense.type_depense.nom }}</div>
                 </div>
                 <div class="activity-item__amount activity-item__amount--negative">
-                    -{{ depense.montant }}€
+                    -{{ depense.montant|gnf }}
                 </div>
             </div>
             {% empty %}
@@ -258,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: {{ chart_labels|safe }},
                 datasets: [{
-                    label: 'Chiffre d\'affaires (€)',
+                    label: 'Chiffre d\'affaires (GNF)',
                     data: {{ chart_data|safe }},
                     borderColor: '#3b82f6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -289,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         padding: 12,
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.y.toFixed(2) + ' €';
+                                return context.parsed.y + ' GNF';
                             }
                         }
                     }
@@ -313,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ticks: {
                             color: '#64748b',
                             callback: function(value) {
-                                return value + ' €';
+                                return value + ' GNF';
                             }
                         }
                     }

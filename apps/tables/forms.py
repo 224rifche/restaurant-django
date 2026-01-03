@@ -9,28 +9,37 @@ class TableRestaurantForm(forms.ModelForm):
         fields = ('numero_table', 'nombre_places', 'user')
         widgets = {
             'numero_table': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
-                'placeholder': 'Ex: Table 1'
+                'class': 'form-input',
+                'placeholder': 'Ex: Table 1',
+                'autofocus': True
             }),
             'nombre_places': forms.NumberInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+                'class': 'form-input',
                 'min': '1',
-                'placeholder': 'Nombre de places'
+                'placeholder': 'Nombre de places',
+                'value': '4'
             }),
             'user': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                'class': 'form-select'
             }),
+        }
+        help_texts = {
+            'user': 'Optionnel - Sélectionnez un utilisateur de type Table',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         from apps.authentication.models import CustomUser
-        self.fields['user'].empty_label = "Sélectionnez un utilisateur..."
-
-        base_qs = CustomUser.objects.filter(role='Rtable', table__isnull=True)
-        if self.instance and getattr(self.instance, 'pk', None) and getattr(self.instance, 'user_id', None):
+        
+        # Rendre le champ user optionnel
+        self.fields['user'].required = False
+        self.fields['user'].empty_label = "Aucun utilisateur"
+        
+        # Filtrer les utilisateurs de type Table
+        self.fields['user'].queryset = CustomUser.objects.filter(role='Rtable')
+        
+        # Si on est en mode édition, on inclut l'utilisateur actuel s'il existe
+        if self.instance and self.instance.user_id:
             self.fields['user'].queryset = CustomUser.objects.filter(
-                Q(pk=self.instance.user_id) | Q(role='Rtable', table__isnull=True)
-            )
-        else:
-            self.fields['user'].queryset = base_qs
+                Q(role='Rtable') | Q(pk=self.instance.user_id)
+            ).distinct()

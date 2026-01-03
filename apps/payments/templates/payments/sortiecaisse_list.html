@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Sorties de caisse{% endblock %}
 
@@ -36,7 +37,7 @@
                 {% for s in sorties %}
                 <tr>
                     <td><span class="badge badge--neutral">{{ s.type_depense.nom }}</span></td>
-                    <td><span class="badge badge--danger">-{{ s.montant }}€</span></td>
+                    <td><span class="badge badge--danger">-{{ s.montant|gnf }}</span></td>
                     <td>{{ s.motif|truncatechars:40 }}</td>
                     <td style="color: var(--text-secondary);">{{ s.date_sortie|date:"d/m/Y H:i" }}</td>
                     <td><a class="btn btn--sm btn--ghost" href="{% url 'payments:detail_sortie' s.id %}">👁️ Détails</a></td>

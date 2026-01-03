@@ -3,8 +3,28 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 
 
+class CategoriePlat(models.Model):
+    nom = models.CharField(max_length=100, unique=True, verbose_name='Nom')
+    ordre = models.PositiveIntegerField(default=0, verbose_name='Ordre')
+
+    class Meta:
+        db_table = 'categories_plats'
+        verbose_name = 'Catégorie'
+        verbose_name_plural = 'Catégories'
+        ordering = ['ordre', 'nom']
+
+    def __str__(self):
+        return self.nom
+
+
 class Plat(models.Model):
     nom = models.CharField(max_length=200, verbose_name='Nom du plat')
+    categorie = models.CharField(
+        max_length=100,
+        default='Poulet',
+        verbose_name='Catégorie'
+    )
+    description = models.TextField(blank=True, verbose_name='Description')
     prix_unitaire = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -23,4 +43,4 @@ class Plat(models.Model):
         ordering = ['nom']
 
     def __str__(self):
-        return f"{self.nom} - {self.prix_unitaire}€"
+        return f"{self.nom} - {self.prix_unitaire} GNF"

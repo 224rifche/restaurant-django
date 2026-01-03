@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Plat
+from .models import Plat, CategoriePlat
+
+
+@admin.register(CategoriePlat)
+class CategoriePlatAdmin(admin.ModelAdmin):
+    list_display = ('nom', 'ordre')
+    list_editable = ('ordre',)
+    search_fields = ('nom',)
+    ordering = ('ordre', 'nom')
 
 
 @admin.register(Plat)

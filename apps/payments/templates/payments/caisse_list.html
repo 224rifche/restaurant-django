@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Historique des caisses{% endblock %}
 
@@ -35,8 +36,8 @@
                 <tr>
                     <td>{{ c.date_ouverture|date:"d/m/Y H:i" }}</td>
                     <td>{{ c.date_fermeture|date:"d/m/Y H:i"|default:'-' }}</td>
-                    <td>{{ c.solde_initial }}€</td>
-                    <td><strong style="color: var(--accent-success);">{{ c.solde_actuel }}€</strong></td>
+                    <td>{{ c.solde_initial|gnf }}</td>
+                    <td><strong style="color: var(--accent-success);">{{ c.solde_actuel|gnf }}</strong></td>
                     <td>
                         {% if c.est_ouverte %}
                         <span class="badge badge--success">🟢 Ouverte</span>

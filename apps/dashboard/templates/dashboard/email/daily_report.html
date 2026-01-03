@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load gnf %}
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -40,7 +41,7 @@
                                     Total Ventes
                                 </p>
                                 <p style="margin: 0; font-size: 28px; font-weight: 700; color: #15803d;">
-                                    +{{ total_paiements }}€
+                                    +{{ total_paiements|gnf }}
                                 </p>
                                 <p style="margin: 8px 0 0; font-size: 12px; color: #64748b;">
                                     {{ nb_paiements }} paiement{{ nb_paiements|pluralize }}
@@ -54,7 +55,7 @@
                                     Total Dépenses
                                 </p>
                                 <p style="margin: 0; font-size: 28px; font-weight: 700; color: #b91c1c;">
-                                    -{{ total_depenses }}€
+                                    -{{ total_depenses|gnf }}
                                 </p>
                                 <p style="margin: 8px 0 0; font-size: 12px; color: #64748b;">
                                     {{ nb_depenses }} dépense{{ nb_depenses|pluralize }}
@@ -74,7 +75,7 @@
                         Solde Net de la Journée
                     </p>
                     <p style="margin: 0; font-size: 36px; font-weight: 700; color: #ffffff;">
-                        {% if solde_net >= 0 %}+{% endif %}{{ solde_net }}€
+                        {% if solde_net >= 0 %}+{% endif %}{{ solde_net|gnf }}
                     </p>
                 </div>
             </td>
@@ -100,7 +101,7 @@
                             <span style="color: #64748b;">Panier moyen</span>
                         </td>
                         <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: right;">
-                            <strong style="color: #0f172a;">{{ panier_moyen|floatformat:2 }}€</strong>
+                            <strong style="color: #0f172a;">{{ panier_moyen|gnf }}</strong>
                         </td>
                     </tr>
                     {% if caisse %}
@@ -109,7 +110,7 @@
                             <span style="color: #64748b;">Solde caisse actuel</span>
                         </td>
                         <td style="padding: 12px 16px; text-align: right;">
-                            <strong style="color: #10b981;">{{ caisse.solde_actuel }}€</strong>
+                            <strong style="color: #10b981;">{{ caisse.solde_actuel|gnf }}</strong>
                         </td>
                     </tr>
                     {% endif %}
@@ -134,7 +135,7 @@
                     <tr style="{% if forloop.counter|divisibleby:2 %}background: #f8fafc;{% endif %}">
                         <td style="padding: 10px 12px; font-size: 13px; color: #0f172a;">{{ p.commande.numero_commande }}</td>
                         <td style="padding: 10px 12px; font-size: 13px; color: #64748b;">{{ p.date_paiement|time:"H:i" }}</td>
-                        <td style="padding: 10px 12px; font-size: 13px; color: #10b981; text-align: right; font-weight: 600;">+{{ p.montant }}€</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #10b981; text-align: right; font-weight: 600;">+{{ p.montant|gnf }}</td>
                     </tr>
                     {% endfor %}
                 </table>
@@ -159,7 +160,7 @@
                     <tr style="{% if forloop.counter|divisibleby:2 %}background: #f8fafc;{% endif %}">
                         <td style="padding: 10px 12px; font-size: 13px; color: #0f172a;">{{ d.type_depense.nom }}</td>
                         <td style="padding: 10px 12px; font-size: 13px; color: #64748b;">{{ d.motif|truncatechars:30 }}</td>
-                        <td style="padding: 10px 12px; font-size: 13px; color: #ef4444; text-align: right; font-weight: 600;">-{{ d.montant }}€</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #ef4444; text-align: right; font-weight: 600;">-{{ d.montant|gnf }}</td>
                     </tr>
                     {% endfor %}
                 </table>

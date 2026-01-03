@@ -1,93 +1,65 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load gnf %}
 
-{% block title %}Encaisser la commande{% endblock %}
+{% block title %}Paiement - {{ commande.numero_commande }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">💳 Encaissement</h1>
-        <p class="page-subtitle">Commande {{ commande.numero_commande }}</p>
-    </div>
-</div>
-
-<div class="grid grid--2">
-    <div class="card">
-        <div class="card__header">
-            <h3 class="card__title">Mode de paiement</h3>
+<div class="min-h-screen bg-gray-100 py-8 px-4">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- En-tête -->
+        <div class="bg-blue-600 text-white px-6 py-4">
+            <h1 class="text-xl font-bold">Paiement</h1>
+            <p class="text-sm">Commande #{{ commande.numero_commande }} - Table {{ commande.table.numero_table }}</p>
         </div>
-        
-        <form method="post" class="form">
+
+        <!-- Montant -->
+        <div class="p-6 text-center border-b">
+            <p class="text-gray-600 mb-1">Montant à régler</p>
+            <p class="text-3xl font-bold text-blue-600">{{ commande.montant_total|gnf }}</p>
+        </div>
+
+        <!-- Formulaire de paiement -->
+        <form method="post" class="p-6">
             {% csrf_token %}
             
-            <div class="form-group">
-                <label class="form-label">Choisir le mode de paiement</label>
-                <div class="payment-options">
-                    <label class="payment-option">
-                        <input type="radio" name="mode_paiement" value="especes" checked>
-                        <span class="payment-option__card">
-                            <span class="payment-option__icon">💵</span>
-                            <span class="payment-option__label">Espèces</span>
-                        </span>
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Méthode de paiement
+                </label>
+                <div class="space-y-3">
+                    <label class="flex items-center p-3 border rounded hover:bg-gray-50 cursor-pointer">
+                        <input type="radio" name="mode_paiement" value="especes" class="h-4 w-4 text-blue-600" checked>
+                        <span class="ml-3">Espèces</span>
                     </label>
-                    <label class="payment-option">
-                        <input type="radio" name="mode_paiement" value="carte">
-                        <span class="payment-option__card">
-                            <span class="payment-option__icon">💳</span>
-                            <span class="payment-option__label">Carte</span>
-                        </span>
+                    <label class="flex items-center p-3 border rounded hover:bg-gray-50 cursor-pointer">
+                        <input type="radio" name="mode_paiement" value="carte" class="h-4 w-4 text-blue-600">
+                        <span class="ml-3">Carte bancaire</span>
                     </label>
-                    <label class="payment-option">
-                        <input type="radio" name="mode_paiement" value="cheque">
-                        <span class="payment-option__card">
-                            <span class="payment-option__icon">📝</span>
-                            <span class="payment-option__label">Chèque</span>
-                        </span>
-                    </label>
-                    <label class="payment-option">
-                        <input type="radio" name="mode_paiement" value="autre">
-                        <span class="payment-option__card">
-                            <span class="payment-option__icon">📦</span>
-                            <span class="payment-option__label">Autre</span>
-                        </span>
+                    <label class="flex items-center p-3 border rounded hover:bg-gray-50 cursor-pointer">
+                        <input type="radio" name="mode_paiement" value="cheque" class="h-4 w-4 text-blue-600">
+                        <span class="ml-3">Chèque</span>
                     </label>
                 </div>
             </div>
 
-            <div class="btn-group" style="margin-top: 24px;">
-                <button class="btn btn--success btn--lg" type="submit">✅ Confirmer le paiement</button>
-                <a class="btn btn--ghost" href="{% url 'orders:list_orders' %}">Annuler</a>
+            <div class="flex space-x-4">
+                <a href="javascript:history.back()" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded">
+                    ↩️ Retour
+                </a>
+                <a href="{% url 'orders:list_orders' %}" class="flex-1 text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded">
+                    Annuler
+                </a>
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Valider
+                </button>
             </div>
         </form>
-    </div>
-    
-    <div class="card">
-        <div class="card__header">
-            <h3 class="card__title">📋 Résumé</h3>
-        </div>
-        <div style="padding: 20px 0;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                <span style="color: var(--text-secondary);">Commande</span>
-                <strong>{{ commande.numero_commande }}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-                <span style="color: var(--text-secondary);">Table</span>
-                <span class="badge badge--neutral">{{ commande.table.numero_table }}</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 2px solid var(--border-color);">
-                <span style="font-size: 18px; font-weight: 600;">Montant à encaisser</span>
-                <span style="font-size: 28px; font-weight: 700; color: var(--accent-success);">{{ commande.montant_total }}€</span>
-            </div>
+
+        <!-- Informations complémentaires -->
+        <div class="bg-gray-50 p-4 text-center text-sm text-gray-600 border-t">
+            <p>Caisse #{{ caisse.id }} - {{ caisse.utilisateur_ouverture.get_full_name|default:caisse.utilisateur_ouverture.get_username }}</p>
         </div>
     </div>
 </div>
-
-<style>
-.payment-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px; }
-.payment-option input { display: none; }
-.payment-option__card { display: flex; flex-direction: column; align-items: center; padding: 20px 12px; background: var(--bg-input); border: 2px solid var(--border-color); border-radius: var(--radius-lg); cursor: pointer; transition: var(--transition-fast); }
-.payment-option__icon { font-size: 32px; margin-bottom: 8px; }
-.payment-option__label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
-.payment-option input:checked + .payment-option__card { border-color: var(--accent-success); background: rgba(16, 185, 129, 0.1); }
-.payment-option input:checked + .payment-option__card .payment-option__label { color: var(--accent-success); }
-</style>
 {% endblock %}

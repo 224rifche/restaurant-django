@@ -24,4 +24,4 @@ class Depense(models.Model):
         ordering = ['-date_depense']
 
     def __str__(self):
-        return f"Dépense #{self.id} - {self.motif} ({self.montant} €)"
+        return f"Dépense #{self.id} - {self.motif} ({self.montant} GNF)"

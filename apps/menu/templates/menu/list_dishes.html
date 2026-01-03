@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Menu{% endblock %}
 
@@ -9,8 +10,35 @@
         <h1 class="page-title">🍴 Notre Menu</h1>
         <p class="page-subtitle">Découvrez nos délicieux plats</p>
     </div>
+    {% if categories %}
+    <div class="card" style="margin-bottom: 16px;">
+        <div class="card__content">
+            <div class="filter-group" style="flex-wrap: wrap;">
+                <a href="?{% if q %}q={{ q }}{% endif %}" class="btn btn--sm {% if not selected_cat %}btn--primary{% else %}btn--ghost{% endif %}">Toutes</a>
+                {% for cat in categories %}
+                    <a href="?cat={{ cat }}{% if q %}&q={{ q }}{% endif %}" class="btn btn--sm {% if selected_cat == cat %}btn--primary{% else %}btn--ghost{% endif %}">{{ cat }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
     <div class="btn-group">
         <a href="{% url 'orders:view_cart' %}" class="btn btn--primary">🛒 Voir mon panier</a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 18px;">
+    <div class="card__content">
+        <form method="get" class="search-form" style="margin-bottom: 16px;">
+            {% if selected_cat %}
+                <input type="hidden" name="cat" value="{{ selected_cat }}" />
+            {% endif %}
+            <input type="search" name="q" value="{{ q|default:'' }}" placeholder="Rechercher un plat..." class="input" />
+            <button type="submit" class="btn btn--primary">Rechercher</button>
+        </form>
+        {% if q %}
+            <a href="?" class="btn btn--ghost">✖️ Effacer</a>
+        {% endif %}
     </div>
 </div>
 
@@ -18,7 +46,7 @@
 <div class="menu-grid">
     {% for plat in plats %}
     <div class="menu-item">
-        {% if plat.image %}
+        {% if plat.image and plat.image.name != 'plats/default.jpg' %}
         <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" class="menu-item__image">
         {% else %}
         <div class="menu-item__image" style="display: flex; align-items: center; justify-content: center; background: var(--bg-input); font-size: 48px;">
@@ -33,10 +61,12 @@
             </p>
             {% endif %}
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span class="menu-item__price">{{ plat.prix_unitaire }}€</span>
-                <a href="{% url 'orders:add_to_cart' plat.id %}" class="btn btn--primary btn--sm">
-                    🛒 Ajouter
-                </a>
+                <span class="menu-item__price">{{ plat.prix_unitaire|gnf }}</span>
+                <form action="{% url 'orders:add_to_cart' plat.id %}" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantite" value="1">
+                    <button type="submit" class="btn btn--primary btn--sm">🛒 Ajouter</button>
+                </form>
             </div>
         </div>
     </div>

@@ -8,14 +8,14 @@ class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(
         label='Login',
         widget=forms.TextInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'form-input',
             'placeholder': 'Entrez votre login'
         })
     )
     password = forms.CharField(
         label='Mot de passe',
         widget=forms.PasswordInput(attrs={
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'class': 'form-input',
             'placeholder': 'Entrez votre mot de passe'
         })
     )
@@ -27,22 +27,22 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ('login', 'role', 'password1', 'password2')
         widgets = {
             'login': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+                'class': 'form-input',
                 'placeholder': 'Minimum 6 caractères alphanumériques'
             }),
             'role': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                'class': 'form-select'
             }),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['password1'].widget.attrs.update({
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+            'class': 'form-input',
             'placeholder': 'Mot de passe complexe'
         })
         self.fields['password2'].widget.attrs.update({
-            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+            'class': 'form-input',
             'placeholder': 'Confirmez le mot de passe'
         })
 
@@ -53,12 +53,12 @@ class CustomUserUpdateForm(forms.ModelForm):
         fields = ('login', 'role', 'is_active')
         widgets = {
             'login': forms.TextInput(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                'class': 'form-input'
             }),
             'role': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
+                'class': 'form-select'
             }),
             'is_active': forms.CheckboxInput(attrs={
-                'class': 'w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+                'class': 'form-checkbox'
             }),
         }

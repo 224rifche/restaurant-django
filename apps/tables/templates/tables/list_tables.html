@@ -9,9 +9,11 @@
         <h1 class="page-title">🪑 Gestion des Tables</h1>
         <p class="page-subtitle">Vue d'ensemble de toutes les tables du restaurant</p>
     </div>
+    {% if request.user.role == 'Radmin' %}
     <div class="btn-group">
         <a href="{% url 'tables:create_table' %}" class="btn btn--primary">+ Nouvelle table</a>
     </div>
+    {% endif %}
 </div>
 
 <!-- Stats rapides -->
@@ -42,8 +44,8 @@
         {% for t in tables %}
         <a href="{% url 'tables:table_detail' t.id %}" class="table-card table-card--{{ t.current_status }}">
             <div class="table-card__number">{{ t.numero_table }}</div>
-            <div class="table-card__seats">{{ t.nombre_places }} places</div>
-            <span class="badge {% if t.current_status == 'libre' %}badge--success{% elif t.current_status == 'en_attente' %}badge--warning{% elif t.current_status == 'servie' %}badge--info{% else %}badge--neutral{% endif %}">
+            <div class="table-card__seats">{{ t.nombre_clients_actuels }}/{{ t.nombre_places }} clients</div>
+            <span class="badge {% if t.current_status == 'libre' or t.current_status == 'commande_payee' %}badge--success{% elif t.current_status == 'commande_en_attente' %}badge--warning{% elif t.current_status == 'commande_servie' %}badge--info{% else %}badge--neutral{% endif %}">
                 {{ t.get_current_status_display }}
             </span>
         </a>
@@ -52,7 +54,9 @@
             <div class="empty-state__icon">🪑</div>
             <p class="empty-state__title">Aucune table</p>
             <p class="empty-state__description">Créez votre première table pour commencer</p>
+            {% if request.user.role == 'Radmin' %}
             <a href="{% url 'tables:create_table' %}" class="btn btn--primary">+ Créer une table</a>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -78,7 +82,7 @@
                 {% for t in tables %}
                 <tr>
                     <td><strong>{{ t.numero_table }}</strong></td>
-                    <td><span class="badge badge--neutral">{{ t.nombre_places }} places</span></td>
+                    <td><span class="badge badge--neutral">{{ t.nombre_clients_actuels }}/{{ t.nombre_places }}</span></td>
                     <td>
                         {% if t.user %}
                             <span class="badge badge--primary">{{ t.user.login }}</span>
@@ -87,15 +91,17 @@
                         {% endif %}
                     </td>
                     <td>
-                        <span class="badge {% if t.current_status == 'libre' %}badge--success{% elif t.current_status == 'en_attente' %}badge--warning{% elif t.current_status == 'servie' %}badge--info{% else %}badge--neutral{% endif %}">
+                        <span class="badge {% if t.current_status == 'libre' or t.current_status == 'commande_payee' %}badge--success{% elif t.current_status == 'commande_en_attente' %}badge--warning{% elif t.current_status == 'commande_servie' %}badge--info{% else %}badge--neutral{% endif %}">
                             {{ t.get_current_status_display }}
                         </span>
                     </td>
                     <td>
                         <div class="btn-group">
                             <a class="btn btn--sm btn--ghost" href="{% url 'tables:table_detail' t.id %}">👁️ Voir</a>
-                            <a class="btn btn--sm btn--ghost" href="{% url 'tables:update_table' t.id %}">✏️ Modifier</a>
-                            <a class="btn btn--sm btn--danger" href="{% url 'tables:delete_table' t.id %}">🗑️</a>
+                            {% if request.user.role == 'Radmin' %}
+                                <a class="btn btn--sm btn--ghost" href="{% url 'tables:update_table' t.id %}">✏️ Modifier</a>
+                                <a class="btn btn--sm btn--danger" href="{% url 'tables:delete_table' t.id %}">🗑️ Supprimer</a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -114,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tables = document.querySelectorAll('.table-card');
     let libres = 0, occupees = 0;
     tables.forEach(t => {
-        if (t.classList.contains('table-card--libre')) libres++;
+        if (t.classList.contains('table-card--libre') || t.classList.contains('table-card--commande_payee')) libres++;
         else occupees++;
     });
     document.getElementById('tables-libres').textContent = libres;

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Fermer la caisse{% endblock %}
 
@@ -51,15 +52,15 @@
         <div style="padding: 20px 0;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                 <span style="color: var(--text-secondary);">Solde initial</span>
-                <strong>{{ caisse.solde_initial }}€</strong>
+                <strong>{{ caisse.solde_initial|gnf }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
                 <span style="color: var(--text-secondary);">Solde actuel</span>
-                <strong style="color: var(--accent-success);">{{ caisse.solde_actuel }}€</strong>
+                <strong style="color: var(--accent-success);">{{ caisse.solde_actuel|gnf }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-color);">
                 <span style="color: var(--text-secondary);">Différence</span>
-                <strong>{{ caisse.difference }}€</strong>
+                <strong>{{ caisse.difference|gnf }}</strong>
             </div>
         </div>
         {% endif %}

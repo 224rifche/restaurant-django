@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Commandes{% endblock %}
 
@@ -6,79 +7,109 @@
 <!-- Page Header -->
 <div class="page-header">
     <div>
-        <h1 class="page-title">📋 Gestion des Commandes</h1>
-        <p class="page-subtitle">Suivez et gérez toutes les commandes en temps réel</p>
+        <h1 class="page-title">📋 Commandes</h1>
+        <p class="page-subtitle">Gérez les commandes du restaurant</p>
     </div>
-</div>
-
-<!-- Filtres rapides -->
-<div class="card" style="padding: 12px 16px; margin-bottom: 24px;">
     <div class="btn-group">
-        <a href="?statut=" class="btn btn--ghost btn--sm {% if not request.GET.statut %}btn--primary{% endif %}">📋 Toutes</a>
-        <a href="?statut=en_attente" class="btn btn--ghost btn--sm {% if request.GET.statut == 'en_attente' %}btn--warning{% endif %}">⏳ En attente</a>
-        <a href="?statut=servie" class="btn btn--ghost btn--sm {% if request.GET.statut == 'servie' %}btn--info{% endif %}">🍽️ Servies</a>
-        <a href="?statut=payee" class="btn btn--ghost btn--sm {% if request.GET.statut == 'payee' %}btn--success{% endif %}">✅ Payées</a>
+        {% if request.user.role == 'Rservent' or request.user.role == 'Radmin' or request.user.role == 'Rcaissier' %}
+        <form method="post" action="{% url 'orders:start_table_order' %}" style="display:flex; gap: 10px; align-items: center;">
+            {% csrf_token %}
+            <select name="table_id" class="input" style="min-width: 160px;">
+                <option value="">Choisir une table…</option>
+                {% for t in tables %}
+                    <option value="{{ t.id }}">Table {{ t.numero_table }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn--primary">➕ Nouvelle commande</button>
+        </form>
+        {% else %}
+        <a href="{% url 'orders:create_order' %}" class="btn btn--primary">+ Nouvelle commande</a>
+        {% endif %}
     </div>
 </div>
 
-<!-- Liste des commandes -->
+{% if request.user.role == 'Rcaissier' %}
+<!-- Stats rapides -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">📊</div>
+        <div class="stat-card__value">{{ commandes|length }}</div>
+        <div class="stat-card__label">Total commandes</div>
+    </div>
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">⏳</div>
+        <div class="stat-card__value">{{ commandes_en_attente }}</div>
+        <div class="stat-card__label">En attente</div>
+    </div>
+    <div class="stat-card stat-card--warning">
+        <div class="stat-card__icon">🍽️</div>
+        <div class="stat-card__value">{{ commandes_servies }}</div>
+        <div class="stat-card__label">Servies</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value">{{ total_commande|gnf }}</div>
+        <div class="stat-card__label">Total</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">Filtres</h3>
+    </div>
+    <div class="card__content">
+        <div class="filter-group">
+            <a href="?" class="btn btn--sm {% if not request.GET.statut %}btn--primary{% else %}btn--ghost{% endif %}">Toutes</a>
+            <a href="?statut=en_attente" class="btn btn--sm {% if request.GET.statut == 'en_attente' %}btn--primary{% else %}btn--ghost{% endif %}">En attente</a>
+            <a href="?statut=servie" class="btn btn--sm {% if request.GET.statut == 'servie' %}btn--primary{% else %}btn--ghost{% endif %}">Servies</a>
+            <a href="?statut=payee" class="btn btn--sm {% if request.GET.statut == 'payee' %}btn--primary{% else %}btn--ghost{% endif %}">Payées</a>
+        </div>
+    </div>
+</div>
+
+<!-- Grille des commandes -->
 <div class="card">
     <div class="card__header">
-        <h3 class="card__title">Liste des commandes</h3>
-        <span class="badge badge--neutral">{{ commandes|length }} commande{{ commandes|length|pluralize }}</span>
+        <h3 class="card__title">Commandes en cours</h3>
     </div>
-    
     {% if commandes %}
-    <div class="table-container">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>N° Commande</th>
-                    <th>Table</th>
-                    <th>Montant</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in commandes %}
-                <tr>
-                    <td>
-                        <strong style="color: var(--accent-primary);">{{ c.numero_commande }}</strong>
-                    </td>
-                    <td>
-                        <span class="badge badge--neutral">Table {{ c.table.numero_table }}</span>
-                    </td>
-                    <td>
-                        <strong>{{ c.montant_total }}€</strong>
-                    </td>
-                    <td>
-                        <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% elif c.statut == 'payee' %}badge--success{% else %}badge--neutral{% endif %}">
-                            {% if c.statut == 'en_attente' %}⏳{% elif c.statut == 'servie' %}🍽️{% elif c.statut == 'payee' %}✅{% endif %}
-                            {{ c.get_statut_display }}
-                        </span>
-                    </td>
-                    <td>
-                        <span style="color: var(--text-secondary); font-size: 13px;">
-                            {{ c.date_commande|date:"d/m/Y H:i" }}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <a class="btn btn--sm btn--ghost" href="{% url 'orders:view_order' c.id %}">👁️ Voir</a>
-                            {% if c.statut == 'en_attente' %}
-                                <a class="btn btn--sm btn--primary" href="{% url 'orders:mark_order_served' c.id %}">🍽️ Servir</a>
-                            {% endif %}
-                            {% if c.statut == 'servie' %}
-                                <a class="btn btn--sm btn--success" href="{% url 'orders:mark_order_paid' c.id %}">💳 Payer</a>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="orders-grid">
+        {% for c in commandes %}
+        <div class="order-card order-card--{{ c.statut }}">
+            <div class="order-card__header">
+                <div class="order-card__number">{{ c.numero_commande }}</div>
+                <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--warning{% elif c.statut == 'payee' %}badge--success{% else %}badge--neutral{% endif %}">
+                    {% if c.statut == 'servie' %}À encaisser{% else %}{{ c.get_statut_display }}{% endif %}
+                </span>
+            </div>
+            
+            <div class="order-card__details">
+                <div class="order-card__detail">
+                    <span class="order-card__label">Table :</span>
+                    <span class="order-card__value">{{ c.table.numero_table }}</span>
+                </div>
+                <div class="order-card__detail">
+                    <span class="order-card__label">Montant :</span>
+                    <span class="order-card__value">{{ c.montant_total|gnf }}</span>
+                </div>
+                <div class="order-card__detail">
+                    <span class="order-card__label">Date :</span>
+                    <span class="order-card__value">{{ c.date_commande|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+            
+            <div class="order-card__actions">
+                <a href="{% url 'orders:view_order' c.id %}" class="btn btn--sm btn--ghost">👁️ Voir</a>
+                {% if c.statut == 'en_attente' %}
+                    <a href="{% url 'orders:mark_order_served' c.id %}" class="btn btn--sm btn--primary">🍽️ Servir</a>
+                {% elif c.statut == 'servie' %}
+                    <a href="{% url 'orders:mark_order_paid' c.id %}" class="btn btn--sm btn--success">💳 Payer</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
     </div>
     {% else %}
     <div class="empty-state">
@@ -88,4 +119,88 @@
     </div>
     {% endif %}
 </div>
+
+<style>
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    padding: 16px;
+}
+
+.order-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-card--en_attente { border-color: var(--accent-warning); }
+.order-card--servie { border-color: var(--accent-info); }
+.order-card--payee { border-color: var(--accent-success); }
+
+.order-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.order-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.order-card__number {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.order-card__details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.order-card__detail {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.order-card__label {
+    color: var(--text-secondary);
+}
+
+.order-card__value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.order-card__actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.order-card__actions .btn {
+    flex: 1;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {% endblock %}

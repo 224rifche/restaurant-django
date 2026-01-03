@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Mes Commandes{% endblock %}
 
@@ -34,7 +35,7 @@
                 <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% else %}badge--success{% endif %}">
                     {{ c.get_statut_display }}
                 </span>
-                <strong style="color: var(--accent-primary);">{{ c.montant_total }}€</strong>
+                <strong style="color: var(--accent-primary);">{{ c.montant_total|gnf }}</strong>
             </div>
         </a>
         {% endfor %}

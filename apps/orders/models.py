@@ -13,6 +13,13 @@ class Panier(models.Model):
         related_name='paniers',
         verbose_name='Table'
     )
+    created_by = models.ForeignKey(
+        'authentication.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name='Créé par'
+    )
     is_active = models.BooleanField(default=True, verbose_name='Actif')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

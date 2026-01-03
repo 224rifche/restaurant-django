@@ -25,6 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('Rtable', 'Table'),
         ('Rservent', 'Serveur/Servante'),
         ('Rcuisinier', 'Cuisinier'),
+        ('Rcaissier', 'Caissier'),
         ('Rcomptable', 'Comptable'),
         ('Radmin', 'Administrateur'),
     ]

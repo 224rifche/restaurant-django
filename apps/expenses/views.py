@@ -38,8 +38,8 @@ def create_depense(request):
         if montant_decimal > caisse.solde_actuel:
             messages.error(
                 request, 
-                f"Solde insuffisant. Solde actuel: {caisse.solde_actuel}€. "
-                f"Montant demandé: {montant_decimal}€"
+                f"Solde insuffisant. Solde actuel: {caisse.solde_actuel} GNF. "
+                f"Montant demandé: {montant_decimal} GNF"
             )
             return redirect('expenses:create_depense')
 
@@ -58,7 +58,7 @@ def create_depense(request):
             caisse.solde_actuel -= montant_decimal
             caisse.save()
 
-        messages.success(request, f"Dépense de {montant_decimal}€ enregistrée avec succès.")
+        messages.success(request, f"Dépense de {montant_decimal} GNF enregistrée avec succès.")
         return redirect('payments:dashboard_caisse')
 
     types_depense = TypeDepense.objects.all().order_by('nom')

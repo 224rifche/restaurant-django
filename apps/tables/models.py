@@ -16,11 +16,18 @@ class TableRestaurant(models.Model):
         validators=[MinValueValidator(1)],
         verbose_name='Nombre de places'
     )
-    user = models.OneToOneField(
+    nombre_clients_actuels = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name='Nombre de clients'
+    )
+    user = models.ForeignKey(
         CustomUser,
-        on_delete=models.CASCADE,
-        related_name='table',
-        verbose_name='Utilisateur associé'
+        on_delete=models.SET_NULL,
+        related_name='tables',
+        verbose_name='Utilisateur associé',
+        null=True,
+        blank=True
     )
     current_status = models.CharField(
         max_length=30,
@@ -44,6 +51,9 @@ class TableRestaurant(models.Model):
         from apps.orders.models import Commande
         return self.commandes.exclude(statut='payee').first()
 
+    def get_last_order(self):
+        return self.commandes.first()
+
     def update_status(self):
         active_order = self.get_active_order()
         if active_order:
@@ -51,6 +61,15 @@ class TableRestaurant(models.Model):
                 self.current_status = 'commande_en_attente'
             elif active_order.statut == 'servie':
                 self.current_status = 'commande_servie'
+            else:
+                self.current_status = 'libre'
         else:
-            self.current_status = 'libre'
+            last_order = self.get_last_order()
+            if last_order and last_order.statut == 'payee':
+                self.current_status = 'commande_payee'
+            else:
+                self.current_status = 'libre'
+
+            # Si aucune commande active: la table est considérée libre -> réinitialiser le nombre de clients
+            self.nombre_clients_actuels = 0
         self.save()

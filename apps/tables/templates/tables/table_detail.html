@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Table {{ table.numero_table }}{% endblock %}
 
@@ -9,7 +10,9 @@
         <p class="page-subtitle">Détails et historique des commandes</p>
     </div>
     <div class="btn-group">
-        <a href="{% url 'tables:update_table' table.id %}" class="btn btn--ghost">✏️ Modifier</a>
+        {% if request.user.role == 'Radmin' %}
+            <a href="{% url 'tables:update_table' table.id %}" class="btn btn--ghost">✏️ Modifier</a>
+        {% endif %}
         <a href="{% url 'tables:list_tables' %}" class="btn btn--ghost">← Retour</a>
     </div>
 </div>
@@ -20,8 +23,13 @@
         <div class="stat-card__value">{{ table.nombre_places }}</div>
         <div class="stat-card__label">Places</div>
     </div>
-    <div class="stat-card {% if table.current_status == 'libre' %}stat-card--success{% elif table.current_status == 'en_attente' %}stat-card--warning{% else %}stat-card--info{% endif %}">
-        <div class="stat-card__icon">{% if table.current_status == 'libre' %}🟢{% elif table.current_status == 'en_attente' %}⏳{% else %}🍽️{% endif %}</div>
+    <div class="stat-card">
+        <div class="stat-card__icon">👥</div>
+        <div class="stat-card__value">{{ table.nombre_clients_actuels }}</div>
+        <div class="stat-card__label">Clients</div>
+    </div>
+    <div class="stat-card {% if table.current_status == 'libre' or table.current_status == 'commande_payee' %}stat-card--success{% elif table.current_status == 'commande_en_attente' %}stat-card--warning{% else %}stat-card--info{% endif %}">
+        <div class="stat-card__icon">{% if table.current_status == 'libre' or table.current_status == 'commande_payee' %}🟢{% elif table.current_status == 'commande_en_attente' %}⏳{% else %}🍽️{% endif %}</div>
         <div class="stat-card__value">{{ table.get_current_status_display }}</div>
         <div class="stat-card__label">Statut actuel</div>
     </div>
@@ -32,6 +40,177 @@
     </div>
 </div>
 
+<div class="card" style="margin-bottom: 16px;">
+    <div class="card__header">
+        <h3 class="card__title">👥 Nombre de clients (serveur)</h3>
+    </div>
+    <div class="card__content">
+        <form method="post" style="display:flex; gap: 10px; align-items: center;">
+            {% csrf_token %}
+            <input class="input" type="number" name="nombre_clients_actuels" min="0" value="{{ table.nombre_clients_actuels }}" style="width: 140px;" />
+            <button type="submit" name="set_clients" value="1" class="btn btn--primary">Enregistrer</button>
+        </form>
+        <div class="form-hint" style="margin-top: 8px;">Capacité: {{ table.nombre_places }} places</div>
+    </div>
+</div>
+
+<div class="order-layout">
+    <aside class="order-sidebar">
+        <div class="card">
+            <div class="card__header">
+                <h3 class="card__title">📚 Catégories</h3>
+            </div>
+            <div class="card__content">
+                <div class="filter-group" style="flex-direction: column; align-items: stretch;">
+                    <a href="?{% if q %}q={{ q }}{% endif %}" class="btn btn--sm {% if not selected_cat %}btn--primary{% else %}btn--ghost{% endif %}">Toutes</a>
+                    {% for cat in categories %}
+                        <a href="?cat={{ cat }}{% if q %}&q={{ q }}{% endif %}" class="btn btn--sm {% if selected_cat == cat %}btn--primary{% else %}btn--ghost{% endif %}">{{ cat }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="card__header">
+                <h3 class="card__title">🔎 Recherche</h3>
+            </div>
+            <div class="card__content">
+                <form method="get" style="display:flex; gap: 10px;">
+                    {% if selected_cat %}
+                        <input type="hidden" name="cat" value="{{ selected_cat }}" />
+                    {% endif %}
+                    <input class="input" type="search" name="q" value="{{ q|default:'' }}" placeholder="Rechercher..." autocomplete="off" style="flex:1;" />
+                    <button type="submit" class="btn btn--primary">OK</button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <section class="order-main">
+        <div class="card">
+            <div class="card__header">
+                <h3 class="card__title">🍽️ Menu</h3>
+            </div>
+
+            {% if plats %}
+            <div class="menu-cards">
+                {% for plat in plats %}
+                <div class="menu-card">
+                    <div class="menu-card__media">
+                        {% if plat.image and plat.image.name != 'plats/default.jpg' %}
+                            <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" class="menu-card__img" />
+                        {% else %}
+                            <div class="menu-card__placeholder">🍽️</div>
+                        {% endif %}
+                    </div>
+                    <div class="menu-card__body">
+                        <div class="menu-card__title">{{ plat.nom }}</div>
+                        {% if plat.description %}
+                            <div class="menu-card__desc">{{ plat.description|truncatechars:90 }}</div>
+                        {% endif %}
+                        <div class="menu-card__footer">
+                            <div class="menu-card__price">{{ plat.prix_unitaire|gnf }}</div>
+                            <form method="post" class="menu-card__form">
+                                {% csrf_token %}
+                                <input type="hidden" name="plat_id" value="{{ plat.id }}">
+                                <input type="number" name="quantite" value="1" min="1" max="10" class="input" style="width: 74px;">
+                                <button type="submit" name="add_plat" value="1" class="btn btn--sm btn--primary">+ Ajouter</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state__icon">🍽️</div>
+                <p class="empty-state__title">Aucun plat</p>
+                <p class="empty-state__description">Essaie une autre catégorie ou une recherche</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="card" style="margin-top: 16px;">
+            <div class="card__header">
+                <h3 class="card__title">🧾 Panier</h3>
+            </div>
+
+            {% if panier_items %}
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Plat</th>
+                            <th>Qté</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in panier_items %}
+                        <tr>
+                            <td><strong>{{ item.plat.nom }}</strong></td>
+                            <td>{{ item.quantite }}</td>
+                            <td><strong>{{ item.quantite|mul:item.prix_unitaire|gnf }}</strong></td>
+                            <td style="text-align: right;">
+                                <form method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="item_id" value="{{ item.id }}">
+                                    <button type="submit" name="remove_item" value="1" class="btn btn--sm btn--danger">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="order-cart-footer">
+                <div>
+                    <span style="color: var(--text-secondary);">Total</span>
+                    <div style="font-weight: 800; font-size: 18px;">{{ panier.total|gnf }}</div>
+                </div>
+                <div class="btn-group" style="justify-content: flex-end;">
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="annuler_panier" value="1" class="btn btn--danger">✖️ Annuler</button>
+                    </form>
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="commander" value="1" class="btn btn--success">✅ Confirmer</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state__icon">🧾</div>
+                <p class="empty-state__title">Panier vide</p>
+                <p class="empty-state__description">Ajoute des plats depuis le menu</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<style>
+  .order-layout{display:grid;grid-template-columns:280px 1fr;gap:16px;margin-top:24px;align-items:start}
+  .order-sidebar{position:sticky;top:16px}
+  .order-sidebar .filter-group .btn{justify-content:flex-start}
+  .menu-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;padding:14px}
+  .menu-card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
+  .menu-card__media{height:140px;background:var(--bg-input);display:flex;align-items:center;justify-content:center}
+  .menu-card__img{width:100%;height:100%;object-fit:cover}
+  .menu-card__placeholder{font-size:42px;opacity:.8}
+  .menu-card__body{padding:12px;display:flex;flex-direction:column;gap:8px}
+  .menu-card__title{font-weight:800;color:var(--text-primary)}
+  .menu-card__desc{font-size:13px;color:var(--text-secondary);line-height:1.35}
+  .menu-card__footer{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:auto}
+  .menu-card__price{font-weight:800;color:var(--accent-primary)}
+  .menu-card__form{display:flex;gap:8px;align-items:center}
+  .order-cart-footer{display:flex;justify-content:space-between;align-items:center;padding:16px;border-top:1px solid var(--border-color)}
+  @media (max-width: 980px){.order-layout{grid-template-columns:1fr}.order-sidebar{position:static}}
+</style>
+
+{% if request.user.role == 'Radmin' or request.user.role == 'Rcaissier' %}
 <div class="card">
     <div class="card__header">
         <h3 class="card__title">📋 Commandes de cette table</h3>
@@ -53,7 +232,7 @@
                 {% for c in commandes %}
                 <tr>
                     <td><strong style="color: var(--accent-primary);">{{ c.numero_commande }}</strong></td>
-                    <td><strong>{{ c.montant_total }}€</strong></td>
+                    <td><strong>{{ c.montant_total|gnf }}</strong></td>
                     <td>
                         <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% else %}badge--success{% endif %}">
                             {{ c.get_statut_display }}
@@ -76,4 +255,5 @@
     </div>
     {% endif %}
 </div>
+{% endif %}
 {% endblock %}
