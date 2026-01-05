@@ -116,6 +116,8 @@ if DATABASE_URL:
         conn_max_age=600,
         ssl_require=False,
     )
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].pop('sslmode', None)
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies' if DEBUG else 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
