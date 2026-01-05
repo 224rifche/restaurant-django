@@ -107,14 +107,14 @@ DATABASES = {
 }
 
 # Configuration pour la base de données de production via DATABASE_URL (prioritaire)
-DATABASE_URL = config('DATABASE_URL', default='')
+DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')
 if DATABASE_URL:
     if dj_database_url is None:
         raise RuntimeError('DATABASE_URL is set but dj_database_url is not installed. Install dj-database-url.')
     DATABASES['default'] = dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
-        ssl_require=not DEBUG,
+        ssl_require=False,
     )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies' if DEBUG else 'django.contrib.sessions.backends.cached_db'
