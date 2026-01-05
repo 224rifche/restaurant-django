@@ -22,6 +22,7 @@ ALLOWED_HOSTS = [
         'ALLOWED_HOSTS',
         default='localhost,127.0.0.1,restaurant-django-production.up.railway.app,.up.railway.app',
     ).split(',')
+    
     if h.strip()
 ]
 
