@@ -21,11 +21,7 @@ def role_required(allowed_roles):
                 return redirect('authentication:login')
             
             if request.user.role not in allowed_roles:
-                messages.error(
-                    request, 
-                    f"Accès refusé. Rôle requis : {', '.join(allowed_roles)}. "
-                    f"Votre rôle : {request.user.get_role_display()}"
-                )
+                messages.error(request, "Accès refusé")
                 # Rediriger vers le tableau de bord approprié selon le rôle
                 if hasattr(request.user, 'role'):
                     return redirect('authentication:redirect_after_login')

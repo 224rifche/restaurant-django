@@ -69,11 +69,25 @@ class CaisseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def get_success_url(self):
         return reverse('payments:dashboard_caisse')
 
-
 @login_required
-@permission_required('payments.can_close_register', raise_exception=True)
 def fermer_caisse(request, pk):
-    caisse = get_object_or_404(Caisse, pk=pk, est_ouverte=True)
+    if hasattr(request.user, 'role') and request.user.role == 'Rcomptable':
+        messages.error(request, "🚫 Accès refusé : Vous n'êtes pas autorisé à effectuer cette action en tant que comptable.")
+        return render(request, 'payments/fermer_caisse.html', {
+            'form': CaisseForm(),
+            'caisse': None,
+            'error': "Action non autorisée pour les comptables"
+        })
+    
+    try:
+        caisse = Caisse.objects.get(pk=pk, est_ouverte=True)
+    except Caisse.DoesNotExist:
+        messages.error(request, "❌ Caisse introuvable ou déjà fermée.")
+        return render(request, 'payments/fermer_caisse.html', {
+            'form': CaisseForm(),
+            'caisse': None,
+            'error': "Caisse introuvable ou déjà fermée"
+        })
     
     if request.method == 'POST':
         form = CaisseForm(request.POST, instance=caisse)
@@ -84,19 +98,18 @@ def fermer_caisse(request, pk):
                 caisse.date_fermeture = timezone.now()
                 caisse.utilisateur_fermeture = request.user
                 caisse.save()
-                
-                messages.success(request, 'La caisse a été fermée avec succès.')
-                return redirect('payments:detail_caisse', pk=caisse.pk)
+                messages.success(request, "✅ Caisse fermée avec succès !")
+                return redirect('payments:dashboard_caisse')
+        else:
+            messages.error(request, "❌ Erreur lors de la fermeture de la caisse. Vérifiez les données saisies.")
     else:
         form = CaisseForm(instance=caisse)
     
-    context = {
+    return render(request, 'payments/dashboard_caisse.html', {
         'form': form,
         'caisse': caisse,
-        'title': 'Fermer la caisse',
-    }
-    return render(request, 'payments/fermer_caisse.html', context)
-
+        'title': 'Fermer la caisse'
+    })
 
 class CaisseDetailView(LoginRequiredMixin, DetailView):
     model = Caisse
