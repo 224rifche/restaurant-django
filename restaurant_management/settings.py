@@ -1,7 +1,10 @@
 import os
 from pathlib import Path
 from decouple import config
-import dj_database_url
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -94,7 +97,7 @@ DATABASES = {
         'NAME': config('DB_NAME', 'restaurant_db'),
         'USER': config('DB_USER', 'root'),
         'PASSWORD': config('DB_PASSWORD', 'che28rif62'),
-        'HOST': config('DB_HOST', 'localhost','yamabiko.proxy.rlwy.net'),
+        'HOST': config('DB_HOST', 'localhost'),
         'PORT': config('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
@@ -106,6 +109,8 @@ DATABASES = {
 # Configuration pour la base de données de production via DATABASE_URL (prioritaire)
 DATABASE_URL = config('DATABASE_URL', default='')
 if DATABASE_URL:
+    if dj_database_url is None:
+        raise RuntimeError('DATABASE_URL is set but dj_database_url is not installed. Install dj-database-url.')
     DATABASES['default'] = dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
