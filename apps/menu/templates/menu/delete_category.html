@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer {{ category.nom }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Supprimer la catégorie</h1>
+        <p class="page-subtitle">{{ category.nom }}</p>
+    </div>
+    <div class="btn-group">
+        <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">← Retour</a>
+    </div>
+</div>
+
+<div class="card" style="max-width: 760px; margin: 0 auto;">
+    <div class="card__header">
+        <h3 class="card__title">Confirmation</h3>
+    </div>
+
+    <div class="card__content">
+        <p>Es-tu sûr de vouloir supprimer la catégorie <strong>{{ category.nom }}</strong> ?</p>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Cette action est définitive.</p>
+
+        <form method="post" class="form" style="margin-top: 16px;">
+            {% csrf_token %}
+            <div class="btn-group" style="justify-content: flex-end;">
+                <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">Annuler</a>
+                <button class="btn btn--danger" type="submit">🗑️ Supprimer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Gérer les catégories{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📂 Gestion des catégories</h1>
+        <p class="page-subtitle">Créez, renommez et réordonnez vos catégories</p>
+    </div>
+    <div class="btn-group">
+        <a class="btn btn--ghost" href="{% url 'menu:manage_dishes' %}">← Retour</a>
+        <a class="btn btn--primary" href="{% url 'menu:create_category' %}">+ Nouvelle catégorie</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">📋 Liste des catégories</h3>
+    </div>
+
+    {% if categories %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Ordre</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <td><strong>{{ cat.nom }}</strong></td>
+                    <td>{{ cat.ordre }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'menu:update_category' cat.id %}">✏️ Modifier</a>
+                            {% if request.user.role == 'Radmin' %}
+                            <a class="btn btn--sm btn--danger" href="{% url 'menu:delete_category' cat.id %}">🗑️</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📂</div>
+        <h3 class="empty-state__title">Aucune catégorie</h3>
+        <p class="empty-state__description">Crée ta première catégorie pour commencer</p>
+        <a href="{% url 'menu:create_category' %}" class="btn btn--primary">+ Créer une catégorie</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

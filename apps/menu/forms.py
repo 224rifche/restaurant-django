@@ -2,14 +2,35 @@ from django import forms
 from .models import Plat, CategoriePlat
 
 
+class CategoriePlatForm(forms.ModelForm):
+    class Meta:
+        model = CategoriePlat
+        fields = ('nom', 'ordre')
+
+
 class PlatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['categorie'].widget = forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
+            'placeholder': 'Catégorie (ex: Poulet, Jus, ...)',
+            'list': 'categorie-list',
+        })
 
-        categories = list(CategoriePlat.objects.order_by('ordre', 'nom').values_list('nom', flat=True))
-        if not categories:
-            categories = ['Poulet', 'Jus', 'Viande', 'Poisson', 'Chawarma']
-        self.fields['categorie'].choices = [(c, c) for c in categories]
+    def clean_categorie(self):
+        value = (self.cleaned_data.get('categorie') or '').strip()
+        if not value:
+            raise forms.ValidationError('Ce champ est obligatoire.')
+        return value
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if instance.categorie:
+            CategoriePlat.objects.get_or_create(nom=instance.categorie, defaults={'ordre': 0})
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance
 
     class Meta:
         model = Plat
@@ -18,9 +39,6 @@ class PlatForm(forms.ModelForm):
             'nom': forms.TextInput(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
                 'placeholder': 'Nom du plat'
-            }),
-            'categorie': forms.Select(attrs={
-                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
             }),
             'description': forms.Textarea(attrs={
                 'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',

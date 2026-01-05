@@ -1,46 +1,42 @@
 {% extends 'base.html' %}
 
-{% block title %}Modifier {{ object.nom }}{% endblock %}
+{% block title %}Modifier {{ category.nom }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title">✏️ Modifier le plat</h1>
-        <p class="page-subtitle">{{ object.nom }}</p>
+        <h1 class="page-title">✏️ Modifier la catégorie</h1>
+        <p class="page-subtitle">{{ category.nom }}</p>
+    </div>
+    <div class="btn-group">
+        <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">← Retour</a>
     </div>
 </div>
 
-<div class="card" style="max-width: 700px;">
+<div class="card" style="max-width: 760px; margin: 0 auto;">
     <div class="card__header">
-        <h3 class="card__title">Informations du plat</h3>
+        <h3 class="card__title">Informations de la catégorie</h3>
     </div>
-    
-    <form method="post" enctype="multipart/form-data" class="form">
+
+    <form method="post" class="form">
         {% csrf_token %}
-        
+
         {% if form.non_field_errors %}
         <div class="message message--error">{{ form.non_field_errors }}</div>
         {% endif %}
-        
+
         {% for field in form %}
         <div class="form-group">
             <label class="form-label">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
             {{ field }}
-            {% if field.name == 'categorie' %}
-            <datalist id="categorie-list">
-                {% for cat in categories %}
-                <option value="{{ cat }}"></option>
-                {% endfor %}
-            </datalist>
-            {% endif %}
             {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
             {% if field.help_text %}<span class="form-hint">{{ field.help_text }}</span>{% endif %}
         </div>
         {% endfor %}
-        
-        <div class="btn-group" style="margin-top: 24px;">
+
+        <div class="btn-group" style="margin-top: 24px; justify-content: flex-end;">
+            <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">Annuler</a>
             <button class="btn btn--primary btn--lg" type="submit">💾 Enregistrer</button>
-            <a class="btn btn--ghost" href="{% url 'menu:manage_dishes' %}">Annuler</a>
         </div>
     </form>
 </div>

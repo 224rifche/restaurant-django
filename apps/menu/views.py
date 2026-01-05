@@ -3,7 +3,7 @@ from django.contrib import messages
 from apps.authentication.decorators import role_required
 from django.db.models import Q
 from .models import Plat, CategoriePlat
-from .forms import PlatForm
+from .forms import PlatForm, CategoriePlatForm
 
 
 @role_required(['Rtable', 'Radmin'])
@@ -41,8 +41,9 @@ def create_dish(request):
             return redirect('menu:manage_dishes')
     else:
         form = PlatForm()
-    
-    return render(request, 'menu/create_dish.html', {'form': form})
+
+    categories = list(CategoriePlat.objects.order_by('ordre', 'nom').values_list('nom', flat=True))
+    return render(request, 'menu/create_dish.html', {'form': form, 'categories': categories})
 
 
 @role_required(['Rcuisinier', 'Radmin'])
@@ -57,8 +58,9 @@ def update_dish(request, dish_id):
             return redirect('menu:manage_dishes')
     else:
         form = PlatForm(instance=plat)
-    
-    return render(request, 'menu/update_dish.html', {'form': form, 'plat': plat})
+
+    categories = list(CategoriePlat.objects.order_by('ordre', 'nom').values_list('nom', flat=True))
+    return render(request, 'menu/update_dish.html', {'form': form, 'plat': plat, 'categories': categories})
 
 
 @role_required(['Rcuisinier', 'Radmin'])
@@ -83,3 +85,47 @@ def delete_dish(request, dish_id):
         return redirect('menu:manage_dishes')
     
     return render(request, 'menu/delete_dish.html', {'plat': plat})
+
+
+@role_required(['Rcuisinier', 'Radmin'])
+def manage_categories(request):
+    categories = CategoriePlat.objects.all().order_by('ordre', 'nom')
+    return render(request, 'menu/manage_categories.html', {'categories': categories})
+
+
+@role_required(['Rcuisinier', 'Radmin'])
+def create_category(request):
+    if request.method == 'POST':
+        form = CategoriePlatForm(request.POST)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Catégorie "{category.nom}" créée avec succès.')
+            return redirect('menu:manage_categories')
+    else:
+        form = CategoriePlatForm()
+    return render(request, 'menu/create_category.html', {'form': form})
+
+
+@role_required(['Rcuisinier', 'Radmin'])
+def update_category(request, category_id):
+    category = get_object_or_404(CategoriePlat, id=category_id)
+    if request.method == 'POST':
+        form = CategoriePlatForm(request.POST, instance=category)
+        if form.is_valid():
+            category = form.save()
+            messages.success(request, f'Catégorie "{category.nom}" modifiée avec succès.')
+            return redirect('menu:manage_categories')
+    else:
+        form = CategoriePlatForm(instance=category)
+    return render(request, 'menu/update_category.html', {'form': form, 'category': category})
+
+
+@role_required(['Radmin'])
+def delete_category(request, category_id):
+    category = get_object_or_404(CategoriePlat, id=category_id)
+    if request.method == 'POST':
+        nom = category.nom
+        category.delete()
+        messages.success(request, f'Catégorie "{nom}" supprimée avec succès.')
+        return redirect('menu:manage_categories')
+    return render(request, 'menu/delete_category.html', {'category': category})
