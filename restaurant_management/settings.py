@@ -21,8 +21,7 @@ ALLOWED_HOSTS = [
     for h in config(
         'ALLOWED_HOSTS',
         default='localhost,127.0.0.1,restaurant-django-production.up.railway.app,.up.railway.app',
-    ).split(',')
-    
+    ).split(',') 
     if h.strip()
 ]
 
@@ -88,22 +87,30 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-DATABASE_URL = config('DATABASE_URL', default='')
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+# Configuration de la base de données MySQL
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME', 'restaurant_db'),
+        'USER': config('DB_USER', 'root'),
+        'PASSWORD': config('DB_PASSWORD', 'che28rif62'),
+        'HOST': config('DB_HOST', 'localhost','yamabiko.proxy.rlwy.net'),
+        'PORT': config('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
         }
     }
+}
+
+# Configuration pour la base de données de production via DATABASE_URL (prioritaire)
+DATABASE_URL = config('DATABASE_URL', default='')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies' if DEBUG else 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'
