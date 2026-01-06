@@ -3,7 +3,11 @@
 <html lang="fr">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1a2a">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}Restaurant{% endblock %} | Gestion Restaurant</title>
     
     <!-- Google Fonts -->
@@ -191,47 +195,121 @@
 <!-- Mobile Navigation -->
 <nav class="mobile-nav">
     {% if request.user.role == 'Radmin' %}
-        <a href="{% url 'dashboard:home' %}" class="mobile-nav__link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">📊<span>Dashboard</span></a>
-        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}">🪑<span>Tables</span></a>
-        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}">📋<span>Commandes</span></a>
-        <a href="{% url 'payments:dashboard_caisse' %}" class="mobile-nav__link {% if 'payments' in request.path %}active{% endif %}">💰<span>Caisse</span></a>
+        <a href="{% url 'dashboard:home' %}" class="mobile-nav__link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" aria-label="Tableau de bord">
+            <i class="fas fa-chart-line"></i>
+            <span>Tableau de bord</span>
+        </a>
+        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}" aria-label="Tables">
+            <i class="fas fa-chair"></i>
+            <span>Tables</span>
+        </a>
+        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}" aria-label="Commandes">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Commandes</span>
+        </a>
+        <a href="{% url 'payments:dashboard_caisse' %}" class="mobile-nav__link {% if 'payments' in request.path %}active{% endif %}" aria-label="Caisse">
+            <i class="fas fa-cash-register"></i>
+            <span>Caisse</span>
+        </a>
     {% elif request.user.role == 'Rservent' %}
-        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}">🪑<span>Tables</span></a>
-        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}">📋<span>Commandes</span></a>
+        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}" aria-label="Tables">
+            <i class="fas fa-chair"></i>
+            <span>Tables</span>
+        </a>
+        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}" aria-label="Commandes">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Commandes</span>
+        </a>
     {% elif request.user.role == 'Rtable' %}
-        <a href="{% url 'menu:list_dishes' %}" class="mobile-nav__link {% if 'menu' in request.path %}active{% endif %}">🍴<span>Menu</span></a>
-        <a href="{% url 'orders:view_cart' %}" class="mobile-nav__link {% if 'cart' in request.path %}active{% endif %}">🛒<span>Panier</span></a>
+        <a href="{% url 'menu:list_dishes' %}" class="mobile-nav__link {% if 'menu' in request.path %}active{% endif %}" aria-label="Menu">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{% url 'orders:view_cart' %}" class="mobile-nav__link {% if 'cart' in request.path %}active{% endif %}" aria-label="Panier">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Panier</span>
+        </a>
     {% endif %}
 </nav>
 
 <script>
-(() => {
+document.addEventListener('DOMContentLoaded', function() {
+  // Éléments du DOM
   const sidebar = document.querySelector('[data-sidebar]');
   const overlay = document.querySelector('[data-sidebar-overlay]');
   const openBtn = document.querySelector('[data-sidebar-toggle]');
   const closeBtn = document.querySelector('[data-sidebar-close]');
+  const mobileNavLinks = document.querySelectorAll('.mobile-nav a');
 
-  if (!sidebar || !overlay || !openBtn || !closeBtn) return;
-
-  const open = () => {
-    sidebar.classList.add('sidebar--open');
-    overlay.classList.add('sidebar-overlay--visible');
+  // Fonction pour ouvrir le menu latéral
+  function openSidebar() {
+    if (sidebar) {
+      sidebar.classList.add('sidebar--open');
+    }
+    if (overlay) {
+      overlay.classList.add('sidebar-overlay--visible');
+    }
     document.body.classList.add('sidebar-open');
-  };
+  }
 
-  const close = () => {
-    sidebar.classList.remove('sidebar--open');
-    overlay.classList.remove('sidebar-overlay--visible');
+  // Fonction pour fermer le menu latéral
+  function closeSidebar() {
+    if (sidebar) {
+      sidebar.classList.remove('sidebar--open');
+    }
+    if (overlay) {
+      overlay.classList.remove('sidebar-overlay--visible');
+    }
     document.body.classList.remove('sidebar-open');
-  };
+  }
 
-  openBtn.addEventListener('click', open);
-  closeBtn.addEventListener('click', close);
-  overlay.addEventListener('click', close);
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close();
+  // Gestion des événements du menu latéral
+  if (openBtn) {
+    openBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      openSidebar();
+    });
+  }
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeSidebar();
+    });
+  }
+  
+  if (overlay) {
+    overlay.addEventListener('click', closeSidebar);
+  }
+  
+  // Gestion des liens de navigation mobile
+  mobileNavLinks.forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      // La navigation se fera normalement grâce au href du lien
+      closeSidebar();
+    });
   });
-})();
+  
+  // Gestion du thème sombre
+  const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  
+  if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+  
+  // Gestion du changement de thème
+  const themeToggle = document.querySelector('[data-theme-toggle]');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+  }
+});
 </script>
 
 {% else %}
@@ -276,7 +354,8 @@
     const mobileMenu = document.getElementById('mobile-menu');
     
     if (mobileMenuButton && mobileMenu) {
-      mobileMenuButton.addEventListener('click', function() {
+      mobileMenuButton.addEventListener('click', function(e) {
+        e.preventDefault();
         mobileMenu.classList.toggle('hidden');
       });
     }

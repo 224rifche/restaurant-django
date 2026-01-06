@@ -71,7 +71,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 # Remove ACL settings as they're not supported by the bucket
 AWS_QUERYSTRING_AUTH = False
-AWS_S3_REGION_NAME = 'us-east-1'
+AWS_S3_REGION_NAME = 'eu-west-3'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_LOCATION = 'media'
 # Disable ACLs and use bucket policy for access control
