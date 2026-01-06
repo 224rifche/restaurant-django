@@ -37,6 +37,7 @@ def create_dish(request):
         form = PlatForm(request.POST, request.FILES)
         if form.is_valid():
             plat = form.save()
+            plat.save()
             messages.success(request, f'Plat "{plat.nom}" créé avec succès.')
             return redirect('menu:manage_dishes')
     else:

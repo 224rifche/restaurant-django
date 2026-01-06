@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 from decouple import config
+from dotenv import load_dotenv
+load_dotenv()
 try:
     import dj_database_url
 except ImportError:
@@ -62,19 +64,22 @@ INSTALLED_APPS = [
 # Configuration S3
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('mon-restaurant-media-2026')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'mon-restaurant-media-2026')
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
-AWS_DEFAULT_ACL = 'public-read'
-AWS_QUERYSTRING_AUTH = False  # Important pour les URLs publiques
-AWS_S3_REGION_NAME = 'us-east-1'  # Remplacez par votre région si différente
+# Remove ACL settings as they're not supported by the bucket
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_REGION_NAME = 'us-east-1'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_LOCATION = 'media'
+# Disable ACLs and use bucket policy for access control
+AWS_DEFAULT_ACL = None
+AWS_S3_FILE_OVERWRITE = False
 
 # Stockage des médias
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'restaurant_management.storage_backend.MediaStorage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
 
 CACHES = {
