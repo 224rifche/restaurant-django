@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import F, Sum, Q
+from datetime import timedelta
 from django.views.decorators.http import require_POST, require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponse
@@ -374,6 +375,18 @@ def view_order(request, order_id):
         'items': items
     })
 
+
+@role_required(['Rcaissier', 'Radmin'])
+def invoice_order(request, order_id):
+    """Génère une facture pour une commande"""
+    commande = get_object_or_404(Commande, id=order_id)
+    items = commande.items.select_related('plat').all()
+    
+    return render(request, 'orders/invoice.html', {
+        'commande': commande,
+        'items': items
+    })
+
 @role_required(['Rservent', 'Radmin', 'Rcaissier'])
 def mark_order_served(request, order_id):
     commande = get_object_or_404(Commande, id=order_id)
@@ -388,6 +401,7 @@ def mark_order_served(request, order_id):
     if request.method == 'POST':
         commande.statut = 'servie'
         commande.date_service = timezone.now()
+        commande.validateur = request.user
         commande.save()
 
         messages.success(request, f"La commande {commande.numero_commande} a été marquée comme servie.")
@@ -412,6 +426,7 @@ def confirm_payment(request, payment_id):
                 paiement.save()
                 # Sécuriser le statut de la commande (au cas où la logique du modèle change)
                 commande.statut = 'payee'
+                commande.caissier = request.user
                 commande.save()
                 messages.success(request, f"Paiement de {paiement.montant} GNF confirmé avec succès pour la commande {commande.numero_commande}.")
                 return redirect('orders:list_orders')
@@ -479,4 +494,89 @@ def order_history(request):
     
     return render(request, 'orders/order_history.html', {
         'commandes': commandes
+    })
+
+
+@role_required(['Radmin', 'Rcaissier'])
+def sales_history(request):
+    """Vue pour l'historique des ventes avec filtres par période"""
+    today = timezone.now().date()
+    
+    # Gérer les filtres de période
+    period = request.GET.get('period', 'today')
+    date_debut = request.GET.get('date_debut')
+    date_fin = request.GET.get('date_fin')
+    
+    # Base queryset - toutes les commandes payées
+    queryset = Commande.objects.filter(statut='payee').select_related(
+        'table', 'serveur', 'validateur', 'caissier'
+    ).order_by('-date_paiement')
+    
+    # Appliquer les filtres de période
+    if period == 'today':
+        queryset = queryset.filter(date_paiement__date=today)
+    elif period == 'yesterday':
+        yesterday = today - timedelta(days=1)
+        queryset = queryset.filter(date_paiement__date=yesterday)
+    elif period == 'before_yesterday':
+        before_yesterday = today - timedelta(days=2)
+        queryset = queryset.filter(date_paiement__date=before_yesterday)
+    elif period == 'week':
+        week_ago = today - timedelta(days=7)
+        queryset = queryset.filter(date_paiement__date__gte=week_ago)
+    elif period == 'month':
+        month_ago = today - timedelta(days=30)
+        queryset = queryset.filter(date_paiement__date__gte=month_ago)
+    elif period == 'last_month':
+        from datetime import datetime
+        first_day_this_month = today.replace(day=1)
+        last_day_last_month = first_day_this_month - timedelta(days=1)
+        first_day_last_month = last_day_last_month.replace(day=1)
+        queryset = queryset.filter(
+            date_paiement__date__gte=first_day_last_month,
+            date_paiement__date__lte=last_day_last_month
+        )
+    elif period == 'year':
+        year_ago = today - timedelta(days=365)
+        queryset = queryset.filter(date_paiement__date__gte=year_ago)
+    elif period == 'custom' and date_debut and date_fin:
+        queryset = queryset.filter(
+            date_paiement__date__gte=date_debut,
+            date_paiement__date__lte=date_fin
+        )
+    
+    # Calculer les statistiques
+    total_ventes = queryset.aggregate(total=Sum('montant_total'))['total'] or Decimal('0.00')
+    nombre_commandes = queryset.count()
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(queryset, 50)
+    page = request.GET.get('page', 1)
+    try:
+        commandes = paginator.page(page)
+    except:
+        commandes = paginator.page(1)
+    
+    context = {
+        'commandes': commandes,
+        'total_ventes': total_ventes,
+        'nombre_commandes': nombre_commandes,
+        'period': period,
+        'date_debut': date_debut,
+        'date_fin': date_fin,
+    }
+    
+    return render(request, 'orders/sales_history.html', context)
+
+
+@role_required(['Rcaissier', 'Radmin'])
+def invoice_order(request, order_id):
+    """Génère une facture pour une commande"""
+    commande = get_object_or_404(Commande, id=order_id)
+    items = commande.items.select_related('plat').all()
+    
+    return render(request, 'orders/invoice.html', {
+        'commande': commande,
+        'items': items
     })

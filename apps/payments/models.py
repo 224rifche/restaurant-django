@@ -218,6 +218,7 @@ class Paiement(models.Model):
         if self.est_valide:
             # Mettre à jour le statut de la commande
             self.commande.statut = 'payee'
+            self.commande.caissier = self.utilisateur
             self.commande.save()
             
             # Mettre à jour le solde de la caisse

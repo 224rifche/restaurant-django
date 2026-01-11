@@ -41,6 +41,7 @@ CSRF_TRUSTED_ORIGINS = [
 
 # Application definition
 INSTALLED_APPS = [
+    'sslserver',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -109,26 +110,34 @@ if not DEBUG:
 # Configuration pour la production
 if not DEBUG:
     # Sécurité en production
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Configuration de la base de données MySQL
+# Configuration de la base de données
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME', 'restaurant_db'),
-        'USER': config('DB_USER', 'root'),
-        'PASSWORD': config('DB_PASSWORD', 'che28rif62'),
-        'HOST': config('DB_HOST', 'localhost'),
-        'PORT': config('DB_PORT', '3306'),
+        'NAME': 'railway',
+        'USER': 'root',
+        'PASSWORD': 'zUvosleWnVLYaxKItTktuOEuodqgIXiB',
+        'HOST': 'ballast.proxy.rlwy.net',
+        'PORT': '19671',
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',
+            'ssl': {'ssl': {}}  # Active SSL
         }
     }
 }
+
+# Configuration alternative avec dj_database_url (recommandé)
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 # Configuration pour la base de données de production via DATABASE_URL (prioritaire)
 DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')

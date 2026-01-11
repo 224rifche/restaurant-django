@@ -219,6 +219,7 @@ class PaiementCreateView(LoginRequiredMixin, CreateView):
         
         # Marquer la commande comme payée
         commande.statut = 'payee'
+        commande.caissier = self.request.user
         commande.save()
         
         messages.success(self.request, 'Le paiement a été enregistré avec succès.')

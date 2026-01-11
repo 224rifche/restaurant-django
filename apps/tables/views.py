@@ -161,7 +161,8 @@ def table_detail(request, table_id):
                 commande = Commande.objects.create(
                     table=table,
                     montant_total=panier.total,
-                    statut='en_attente'
+                    statut='en_attente',
+                    serveur=request.user
                 )
                 
                 # Ajouter les articles à la commande

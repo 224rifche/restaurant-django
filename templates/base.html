@@ -64,11 +64,21 @@
                 
                 <div class="sidebar__section">
                     <div class="sidebar__section-title">Finance</div>
-                    <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path %}active{% endif %}">
+                    <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path and 'caisses' not in request.path %}active{% endif %}">
                         <span>💰</span> Caisse
                     </a>
                     <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
                         <span>📤</span> Dépenses
+                    </a>
+                </div>
+
+                <div class="sidebar__section">
+                    <div class="sidebar__section-title">Manager</div>
+                    <a href="{% url 'orders:sales_history' %}" class="sidebar__link {% if 'historique-ventes' in request.path %}active{% endif %}">
+                        <span>📊</span> Historique des ventes
+                    </a>
+                    <a href="{% url 'payments:liste_caisses' %}" class="sidebar__link {% if 'caisses' in request.path %}active{% endif %}">
+                        <span>📁</span> Historique des caisses
                     </a>
                 </div>
 
@@ -94,6 +104,29 @@
                 <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
                     <span>📤</span> Dépenses
                 </a>
+            {% endif %}
+
+            {# Caissier #}
+            {% if request.user.role == 'Rcaissier' %}
+                <a href="{% url 'tables:list_tables' %}" class="sidebar__link {% if 'tables' in request.path %}active{% endif %}">
+                    <span>🪑</span> Tables
+                </a>
+                <a href="{% url 'orders:list_orders' %}" class="sidebar__link {% if 'orders' in request.path and 'cart' not in request.path and 'historique-ventes' not in request.path %}active{% endif %}">
+                    <span>📋</span> Commandes
+                </a>
+                <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path and 'caisses' not in request.path %}active{% endif %}">
+                    <span>💰</span> Caisse
+                </a>
+                
+                <div class="sidebar__section">
+                    <div class="sidebar__section-title">Manager</div>
+                    <a href="{% url 'orders:sales_history' %}" class="sidebar__link {% if 'historique-ventes' in request.path %}active{% endif %}">
+                        <span>📊</span> Historique des ventes
+                    </a>
+                    <a href="{% url 'payments:liste_caisses' %}" class="sidebar__link {% if 'caisses' in request.path %}active{% endif %}">
+                        <span>📁</span> Historique des caisses
+                    </a>
+                </div>
             {% endif %}
 
             {# Cuisinier #}

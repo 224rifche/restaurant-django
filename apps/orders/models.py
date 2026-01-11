@@ -114,6 +114,30 @@ class Commande(models.Model):
     date_service = models.DateTimeField(null=True, blank=True, verbose_name='Date de service')
     date_paiement = models.DateTimeField(null=True, blank=True, verbose_name='Date de paiement')
     notes = models.TextField(blank=True, verbose_name='Notes')
+    serveur = models.ForeignKey(
+        'authentication.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='commandes_serveur',
+        verbose_name='Serveur (a commandé)'
+    )
+    validateur = models.ForeignKey(
+        'authentication.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='commandes_validees',
+        verbose_name='Validateur (a servi)'
+    )
+    caissier = models.ForeignKey(
+        'authentication.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='commandes_caissier',
+        verbose_name='Caissier (a encaissé)'
+    )
 
     class Meta:
         db_table = 'commandes'

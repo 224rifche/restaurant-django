@@ -15,6 +15,10 @@
         {% elif commande.statut == 'servie' %}
         <a href="{% url 'orders:mark_order_paid' commande.id %}" class="btn btn--success">💳 Encaisser</a>
         {% endif %}
+        {% if request.user.role == 'Rcaissier' or request.user.role == 'Radmin' or request.user.role == 'Rservent' %}
+        <button onclick="window.print()" class="btn btn--ghost">🖨️ Imprimer</button>
+        <a href="{% url 'orders:invoice_order' commande.id %}" class="btn btn--ghost" target="_blank">🧾 Facture</a>
+        {% endif %}
         <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">← Retour</a>
     </div>
 </div>
@@ -41,6 +45,36 @@
         <div class="stat-card__label">{{ commande.date_commande|date:"d/m/Y" }}</div>
     </div>
 </div>
+
+{% if commande.serveur or commande.validateur or commande.caissier %}
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">👥 Informations de la commande</h3>
+    </div>
+    <div class="card__content">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            {% if commande.serveur %}
+            <div>
+                <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 4px;">Serveur (a commandé)</div>
+                <div style="font-weight: 600;">{{ commande.serveur.login }}</div>
+            </div>
+            {% endif %}
+            {% if commande.validateur %}
+            <div>
+                <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 4px;">Validateur (a servi)</div>
+                <div style="font-weight: 600;">{{ commande.validateur.login }}</div>
+            </div>
+            {% endif %}
+            {% if commande.caissier %}
+            <div>
+                <div style="color: var(--text-secondary); font-size: 13px; margin-bottom: 4px;">Caissier (a encaissé)</div>
+                <div style="font-weight: 600;">{{ commande.caissier.login }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div class="card">
     <div class="card__header">

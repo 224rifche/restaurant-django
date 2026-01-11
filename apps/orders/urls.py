@@ -18,8 +18,10 @@ urlpatterns = [
     path('commande/confirmation/<int:order_id>/', login_required(views.order_confirmation), name='order_confirmation'),
     path('commandes/', login_required(views.list_orders), name='list_orders'),
     path('commande/<int:order_id>/', login_required(views.view_order), name='view_order'),
+    path('commande/<int:order_id>/facture/', login_required(views.invoice_order), name='invoice_order'),
     path('commande/<int:order_id>/servie/', login_required(views.mark_order_served), name='mark_order_served'),
     path('commande/<int:order_id>/payee/', login_required(views.mark_order_paid), name='mark_order_paid'),
     path('paiement/confirmer/<int:payment_id>/', login_required(views.confirm_payment), name='confirm_payment'),
     path('historique/', login_required(views.order_history), name='order_history'),
+    path('historique-ventes/', login_required(views.sales_history), name='sales_history'),
 ]

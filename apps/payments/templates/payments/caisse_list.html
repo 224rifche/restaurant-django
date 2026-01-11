@@ -24,7 +24,9 @@
             <thead>
                 <tr>
                     <th>Ouverture</th>
+                    <th>Ouverte par</th>
                     <th>Fermeture</th>
+                    <th>Fermée par</th>
                     <th>Solde initial</th>
                     <th>Solde final</th>
                     <th>Statut</th>
@@ -35,7 +37,9 @@
                 {% for c in caisses %}
                 <tr>
                     <td>{{ c.date_ouverture|date:"d/m/Y H:i" }}</td>
+                    <td>{{ c.utilisateur_ouverture.login|default:"-" }}</td>
                     <td>{{ c.date_fermeture|date:"d/m/Y H:i"|default:'-' }}</td>
+                    <td>{{ c.utilisateur_fermeture.login|default:"-" }}</td>
                     <td>{{ c.solde_initial|gnf }}</td>
                     <td><strong style="color: var(--accent-success);">{{ c.solde_actuel|gnf }}</strong></td>
                     <td>

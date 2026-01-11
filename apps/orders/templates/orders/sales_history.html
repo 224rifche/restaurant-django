@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load gnf %}
+
+{% block title %}Historique des Ventes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📊 Historique des Ventes</h1>
+        <p class="page-subtitle">Consultez l'historique des ventes avec filtres</p>
+    </div>
+</div>
+
+<!-- Filtres de période -->
+<div class="card" style="margin-bottom: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">Filtres de période</h3>
+    </div>
+    <div class="card__content">
+        <form method="get" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <a href="?period=today" class="btn btn--sm {% if period == 'today' %}btn--primary{% else %}btn--ghost{% endif %}">Aujourd'hui</a>
+                <a href="?period=yesterday" class="btn btn--sm {% if period == 'yesterday' %}btn--primary{% else %}btn--ghost{% endif %}">Hier</a>
+                <a href="?period=before_yesterday" class="btn btn--sm {% if period == 'before_yesterday' %}btn--primary{% else %}btn--ghost{% endif %}">Avant-hier</a>
+                <a href="?period=week" class="btn btn--sm {% if period == 'week' %}btn--primary{% else %}btn--ghost{% endif %}">Semaine</a>
+                <a href="?period=month" class="btn btn--sm {% if period == 'month' %}btn--primary{% else %}btn--ghost{% endif %}">Mois</a>
+                <a href="?period=last_month" class="btn btn--sm {% if period == 'last_month' %}btn--primary{% else %}btn--ghost{% endif %}">Mois passé</a>
+                <a href="?period=year" class="btn btn--sm {% if period == 'year' %}btn--primary{% else %}btn--ghost{% endif %}">Année</a>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="date" name="date_debut" value="{{ date_debut }}" class="input" placeholder="Date début">
+                <input type="date" name="date_fin" value="{{ date_fin }}" class="input" placeholder="Date fin">
+                <input type="hidden" name="period" value="custom">
+                <button type="submit" class="btn btn--primary btn--sm">Filtrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Statistiques -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value">{{ total_ventes|gnf }}</div>
+        <div class="stat-card__label">Total des ventes</div>
+    </div>
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">📋</div>
+        <div class="stat-card__value">{{ nombre_commandes }}</div>
+        <div class="stat-card__label">Nombre de commandes</div>
+    </div>
+</div>
+
+<!-- Liste des commandes -->
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Commandes payées</h3>
+    </div>
+    
+    {% if commandes %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N° Commande</th>
+                    <th>Table</th>
+                    <th>Montant</th>
+                    <th>Date</th>
+                    <th>Serveur</th>
+                    <th>Validateur</th>
+                    <th>Caissier</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in commandes %}
+                <tr>
+                    <td><strong>{{ c.numero_commande }}</strong></td>
+                    <td>Table {{ c.table.numero_table }}</td>
+                    <td><strong>{{ c.montant_total|gnf }}</strong></td>
+                    <td>{{ c.date_paiement|date:"d/m/Y H:i" }}</td>
+                    <td>{{ c.serveur.login|default:"-" }}</td>
+                    <td>{{ c.validateur.login|default:"-" }}</td>
+                    <td>{{ c.caissier.login|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'orders:view_order' c.id %}" class="btn btn--sm btn--ghost">👁️ Voir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if commandes.has_other_pages %}
+    <div class="card__content" style="padding-top: 16px; border-top: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: center; gap: 8px;">
+            {% if commandes.has_previous %}
+                <a href="?page={{ commandes.previous_page_number }}{% if period %}&period={{ period }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="btn btn--sm btn--ghost">← Précédent</a>
+            {% endif %}
+            
+            <span class="btn btn--sm btn--ghost" style="cursor: default;">
+                Page {{ commandes.number }} sur {{ commandes.paginator.num_pages }}
+            </span>
+            
+            {% if commandes.has_next %}
+                <a href="?page={{ commandes.next_page_number }}{% if period %}&period={{ period }}{% endif %}{% if date_debut %}&date_debut={{ date_debut }}{% endif %}{% if date_fin %}&date_fin={{ date_fin }}{% endif %}" class="btn btn--sm btn--ghost">Suivant →</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📊</div>
+        <h3 class="empty-state__title">Aucune vente</h3>
+        <p class="empty-state__description">Aucune commande payée trouvée pour cette période</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
