@@ -1,0 +1,14 @@
+Collecting Django==4.2.8
+  Using cached Django-4.2.8-py3-none-any.whl.metadata (4.2 kB)
+Requirement already satisfied: Pillow in c:\users\boubacar cherif\onedrive\desktop\django\venv\lib\site-packages (10.3.0)
+Requirement already satisfied: mysqlclient in c:\users\boubacar cherif\onedrive\desktop\django\venv\lib\site-packages (2.2.7)
+Requirement already satisfied: asgiref<4,>=3.6.0 in c:\users\boubacar cherif\onedrive\desktop\django\venv\lib\site-packages (from Django==4.2.8) (3.11.0)
+Requirement already satisfied: sqlparse>=0.3.1 in c:\users\boubacar cherif\onedrive\desktop\django\venv\lib\site-packages (from Django==4.2.8) (0.5.5)
+Requirement already satisfied: tzdata in c:\users\boubacar cherif\onedrive\desktop\django\venv\lib\site-packages (from Django==4.2.8) (2025.3)
+Using cached Django-4.2.8-py3-none-any.whl (8.0 MB)
+Installing collected packages: Django
+  Attempting uninstall: Django
+    Found existing installation: Django 4.2.27
+    Uninstalling Django-4.2.27:
+      Successfully uninstalled Django-4.2.27
+Successfully installed Django-4.2.8
