@@ -19,7 +19,7 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 15
 CACHE_MIDDLEWARE_KEY_PREFIX = 'restaurant'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     h.strip()
@@ -81,8 +81,16 @@ AWS_DEFAULT_ACL = None
 AWS_S3_FILE_OVERWRITE = False
 
 # Stockage des médias
-DEFAULT_FILE_STORAGE = 'restaurant_management.storage_backend.MediaStorage'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+USE_S3 = config('USE_S3', default=False, cast=bool)
+HAS_S3_CREDS = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME)
+
+if USE_S3 and HAS_S3_CREDS:
+    DEFAULT_FILE_STORAGE = 'restaurant_management.storage_backend.MediaStorage'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    MEDIA_ROOT = BASE_DIR / 'media'
+    MEDIA_URL = '/media/'
 
 CACHES = {
     'default': {
@@ -228,9 +236,6 @@ COMPRESS_ENABLED = True
 COMPRESS_OFFLINE = not DEBUG
 
 # Configuration des médias
-
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
 
 # Configuration des validateurs de mot de passe
 AUTH_PASSWORD_VALIDATORS = [

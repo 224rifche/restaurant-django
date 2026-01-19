@@ -5,6 +5,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
     .qr-code {
         max-width: 200px;
@@ -101,23 +102,33 @@
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <div class="flex justify-end space-x-2">
                                 {% if table.qr_status == 'active' %}
+                                    <a href="{% url 'tables:view_qr_code' table_id=table.id %}" 
+                                       class="text-green-600 hover:text-green-900 mr-3"
+                                       target="_blank"
+                                       title="Afficher le QR code dans le navigateur">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
                                     <a href="{% url 'tables:generate_qr_code' table_id=table.id %}" 
-                                       class="text-blue-600 hover:text-blue-900 mr-3">
-                                        Télécharger QR Code
+                                       class="text-blue-600 hover:text-blue-900 mr-3"
+                                       title="Télécharger le QR code">
+                                        <i class="fas fa-download"></i> Télécharger
                                     </a>
                                     <button onclick="toggleTableStatus({{ table.id }})" 
-                                            class="text-yellow-600 hover:text-yellow-900">
-                                        Bloquer
+                                            class="text-yellow-600 hover:text-yellow-900"
+                                            title="Bloquer cette table">
+                                        <i class="fas fa-lock"></i> Bloquer
                                     </button>
                                 {% elif table.qr_status == 'blocked' %}
                                     <button onclick="toggleTableStatus({{ table.id }})" 
-                                            class="text-green-600 hover:text-green-900">
-                                        Débloquer
+                                            class="text-green-600 hover:text-green-900"
+                                            title="Débloquer cette table">
+                                        <i class="fas fa-unlock"></i> Débloquer
                                     </button>
                                 {% else %}
                                     <a href="{% url 'tables:generate_qr_code' table_id=table.id %}" 
-                                       class="text-blue-600 hover:text-blue-900">
-                                        Générer QR Code
+                                       class="text-blue-600 hover:text-blue-900"
+                                       title="Générer un nouveau QR code">
+                                        <i class="fas fa-qrcode"></i> Générer QR Code
                                     </a>
                                 {% endif %}
                             </div>
