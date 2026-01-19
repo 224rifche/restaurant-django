@@ -27,6 +27,7 @@ packaging==25.0
 pillow==10.3.0
 psycopg2-binary==2.9.9
 python-dateutil==2.9.0.post0
+qrcode==7.4.2
 python-decouple==3.8
 python-dotenv==1.2.1
 rcssmin==1.2.2
