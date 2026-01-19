@@ -191,10 +191,14 @@
 
         <form method="post" class="login-form">
             {% csrf_token %}
+
+            {% if next %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
             
             <div class="login-input-group">
                 <label for="id_username">Identifiant</label>
-                <input type="text" name="username" id="id_username" placeholder="Ex: TABLE001, SERV123" required autofocus>
+                <input type="text" name="username" id="id_username" placeholder="Ex: TABLE001, SERV123" value="{{ prefill_username|default:'' }}" required autofocus>
                 {% if form.username.errors %}
                 <span class="form-error">{{ form.username.errors.0 }}</span>
                 {% endif %}

@@ -1,0 +1,170 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Gestion des QR Codes des Tables{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .qr-code {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    .table-status {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .status-active {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    .status-inactive {
+        background-color: #e5e7eb;
+        color: #4b5563;
+    }
+    .status-blocked {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Gestion des QR Codes des Tables</h1>
+        <form method="post" action="{% url 'tables:invalidate_all_table_qr_tokens' %}">
+            {% csrf_token %}
+            <button type="submit" class="button default">Déconnecter toutes les tables</button>
+        </form>
+    </div>
+    
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Table
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Utilisateur
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Statut
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Dernière connexion
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for table in tables %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ table.numero_table }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ table.nombre_places }} places
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">
+                                {{ table.user.username|default:"Aucun utilisateur" }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ table.user.get_role_display|default:"" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="table-status status-{{ table.qr_status }}">
+                                {{ table.get_qr_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {% if table.last_login_at %}
+                                {{ table.last_login_at|date:"d/m/Y H:i" }}
+                                <span class="block text-xs text-gray-400">{{ table.last_login_ip|default:"" }}</span>
+                            {% else %}
+                                Jamais connecté
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex justify-end space-x-2">
+                                {% if table.qr_status == 'active' %}
+                                    <a href="{% url 'tables:generate_qr_code' table_id=table.id %}" 
+                                       class="text-blue-600 hover:text-blue-900 mr-3">
+                                        Télécharger QR Code
+                                    </a>
+                                    <button onclick="toggleTableStatus({{ table.id }})" 
+                                            class="text-yellow-600 hover:text-yellow-900">
+                                        Bloquer
+                                    </button>
+                                {% elif table.qr_status == 'blocked' %}
+                                    <button onclick="toggleTableStatus({{ table.id }})" 
+                                            class="text-green-600 hover:text-green-900">
+                                        Débloquer
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'tables:generate_qr_code' table_id=table.id %}" 
+                                       class="text-blue-600 hover:text-blue-900">
+                                        Générer QR Code
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            Aucune table trouvée.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+function toggleTableStatus(tableId) {
+    const url = `/tables/admin/tables/${tableId}/toggle-status/`;
+    const csrftoken = document.getElementById('js-csrf-token')?.value || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Recharger la page pour voir les changements
+            window.location.reload();
+        } else {
+            alert('Une erreur est survenue lors de la mise à jour du statut de la table.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue lors de la communication avec le serveur.');
+    });
+}
+</script>
+{% endblock %}

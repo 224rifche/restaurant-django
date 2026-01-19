@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.views.decorators.cache import never_cache
 from django.db import transaction, IntegrityError
 from django.db.models.deletion import ProtectedError
+from django.utils.http import url_has_allowed_host_and_scheme
+
 from .forms import CustomLoginForm, CustomUserCreationForm, CustomUserUpdateForm
 from .models import CustomUser
 from .decorators import role_required
@@ -14,6 +16,9 @@ from .decorators import role_required
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('authentication:redirect_after_login')
+
+    initial_username = (request.GET.get('username') or '').strip()
+    next_url = (request.GET.get('next') or request.POST.get('next') or '').strip()
     
     if request.method == 'POST':
         form = CustomLoginForm(request, data=request.POST)
@@ -22,15 +27,17 @@ def login_view(request):
             if user.is_active:
                 login(request, user)
                 messages.success(request, f'Bienvenue {user.login} — Rôle : {user.get_role_display()}')
+                if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                    return redirect(next_url)
                 return redirect('authentication:redirect_after_login')
             else:
                 messages.error(request, 'Votre compte est désactivé.')
         else:
             messages.error(request, 'Login ou mot de passe incorrect.')
     else:
-        form = CustomLoginForm()
+        form = CustomLoginForm(request, initial={'username': initial_username} if initial_username else None)
     
-    return render(request, 'authentication/login.html', {'form': form})
+    return render(request, 'authentication/login.html', {'form': form, 'prefill_username': initial_username, 'next': next_url})
 
 
 @login_required

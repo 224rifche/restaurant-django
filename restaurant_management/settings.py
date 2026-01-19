@@ -19,7 +19,7 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 15
 CACHE_MIDDLEWARE_KEY_PREFIX = 'restaurant'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = True
 
 ALLOWED_HOSTS = [
     h.strip()
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.dashboard',
     'storages',
+   
 ]
 
 # Configuration S3

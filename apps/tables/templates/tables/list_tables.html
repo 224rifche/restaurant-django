@@ -96,13 +96,18 @@
                         </span>
                     </td>
                     <td>
-                        <div class="btn-group">
-                            <a class="btn btn--sm btn--ghost" href="{% url 'tables:table_detail' t.id %}">👁️ Voir</a>
+                        <select class="form-select" onchange="handleTableAction(this, {{ t.id }})">
+                            <option value="">Actions...</option>
+                            <option value="view">👁️ Voir</option>
                             {% if request.user.role == 'Radmin' %}
-                                <a class="btn btn--sm btn--ghost" href="{% url 'tables:update_table' t.id %}">✏️ Modifier</a>
-                                <a class="btn btn--sm btn--danger" href="{% url 'tables:delete_table' t.id %}">🗑️ Supprimer</a>
+                                {% if t.user %}
+                                    <option value="qr_view">QR Voir</option>
+                                    <option value="qr_generate">QR Générer</option>
+                                {% endif %}
+                                <option value="edit">✏️ Modifier</option>
+                                <option value="delete">🗑️ Supprimer</option>
                             {% endif %}
-                        </div>
+                        </select>
                     </td>
                 </tr>
                 {% empty %}
@@ -126,5 +131,36 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('tables-libres').textContent = libres;
     document.getElementById('tables-occupees').textContent = occupees;
 });
+
+function handleTableAction(selectEl, tableId) {
+    const action = selectEl.value;
+    if (!action) return;
+
+    const urls = {
+        view: "{% url 'tables:table_detail' 0 %}".replace('/0/', `/${tableId}/`),
+        qr_view: "{% url 'tables:table_view_qr_code' 0 %}".replace('/0/', `/${tableId}/`),
+        qr_generate: "{% url 'tables:table_generate_qr_code' 0 %}".replace('/0/', `/${tableId}/`),
+        edit: "{% url 'tables:update_table' 0 %}".replace('/0/', `/${tableId}/`),
+        delete: "{% url 'tables:delete_table' 0 %}".replace('/0/', `/${tableId}/`),
+    };
+
+    if (action === 'delete') {
+        const ok = confirm('Supprimer cette table ?');
+        if (!ok) {
+            selectEl.value = '';
+            return;
+        }
+        window.location.href = urls.delete;
+        return;
+    }
+
+    if (action === 'qr_view') {
+        window.open(urls.qr_view, '_blank');
+        selectEl.value = '';
+        return;
+    }
+
+    window.location.href = urls[action];
+}
 </script>
 {% endblock %}

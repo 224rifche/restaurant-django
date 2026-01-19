@@ -105,7 +105,7 @@ def fermer_caisse(request, pk):
     else:
         form = CaisseForm(instance=caisse)
     
-    return render(request, 'payments/dashboard_caisse.html', {
+    return render(request, 'payments/fermer_caisse.html', {
         'form': form,
         'caisse': caisse,
         'title': 'Fermer la caisse'
