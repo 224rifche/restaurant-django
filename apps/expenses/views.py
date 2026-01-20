@@ -16,15 +16,24 @@ def create_depense(request):
         return redirect('payments:dashboard_caisse')
 
     if request.method == 'POST':
-        type_depense_id = request.POST.get('type_depense')
+        type_depense_id = (request.POST.get('type_depense') or '').strip()
+        type_depense_name = (request.POST.get('type_depense_name') or '').strip()
         montant = request.POST.get('montant')
         motif = request.POST.get('motif')
         notes = request.POST.get('notes', '')
         justificatif = request.FILES.get('justificatif')
 
-        if not (type_depense_id and montant and motif):
+        if not ((type_depense_id or type_depense_name) and montant and motif):
             messages.error(request, "Champs obligatoires manquants.")
             return redirect('expenses:create_depense')
+
+        if not type_depense_id and type_depense_name:
+            existing = TypeDepense.objects.filter(nom__iexact=type_depense_name).first()
+            if existing is not None:
+                type_depense_id = str(existing.id)
+            else:
+                created = TypeDepense.objects.create(nom=type_depense_name)
+                type_depense_id = str(created.id)
 
         # Convertir le montant en Decimal pour la comparaison
         from decimal import Decimal, InvalidOperation

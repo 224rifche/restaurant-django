@@ -84,15 +84,14 @@
                         </span>
                     </td>
                     <td>
-                        <div class="btn-group">
-                            <a class="btn btn--sm btn--ghost" href="{% url 'authentication:update_user' u.id %}">✏️ Modifier</a>
+                        <select class="form-select" onchange="handleUserAction(this, {{ u.id }}, {{ u.is_active|yesno:'true,false' }}, {{ u.id == request.user.id|yesno:'true,false' }})">
+                            <option value="">Actions...</option>
+                            <option value="edit">✏️ Modifier</option>
                             {% if u != request.user %}
-                            <a class="btn btn--sm {% if u.is_active %}btn--warning{% else %}btn--success{% endif %}" href="{% url 'authentication:toggle_user_status' u.id %}">
-                                {% if u.is_active %}🔒{% else %}🔓{% endif %}
-                            </a>
-                            <a class="btn btn--sm btn--danger" href="{% url 'authentication:delete_user' u.id %}">🗑️</a>
+                                <option value="toggle">{% if u.is_active %}🔒 Désactiver{% else %}🔓 Activer{% endif %}</option>
+                                <option value="delete">🗑️ Supprimer</option>
                             {% endif %}
-                        </div>
+                        </select>
                     </td>
                 </tr>
                 {% endfor %}
@@ -119,5 +118,39 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('users-actifs').textContent = actifs;
     document.getElementById('users-inactifs').textContent = inactifs;
 });
+
+function handleUserAction(selectEl, userId, isActive, isSelf) {
+    const action = selectEl.value;
+    if (!action) return;
+
+    const urls = {
+        edit: "{% url 'authentication:update_user' 0 %}".replace('/0/', `/${userId}/`),
+        toggle: "{% url 'authentication:toggle_user_status' 0 %}".replace('/0/', `/${userId}/`),
+        delete: "{% url 'authentication:delete_user' 0 %}".replace('/0/', `/${userId}/`),
+    };
+
+    if (action === 'delete') {
+        const ok = confirm('Supprimer cet utilisateur ?');
+        if (!ok) {
+            selectEl.value = '';
+            return;
+        }
+        window.location.href = urls.delete;
+        return;
+    }
+
+    if (action === 'toggle') {
+        const label = isActive ? 'Désactiver' : 'Activer';
+        const ok = confirm(`${label} cet utilisateur ?`);
+        if (!ok) {
+            selectEl.value = '';
+            return;
+        }
+        window.location.href = urls.toggle;
+        return;
+    }
+
+    window.location.href = urls[action];
+}
 </script>
 {% endblock %}

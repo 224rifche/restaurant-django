@@ -43,11 +43,19 @@ class CaisseCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     template_name = 'payments/caisse_form.html'
     
     def test_func(self):
-        return self.request.user.has_perm('payments.can_open_register')
+        user = self.request.user
+
+        if not user.is_authenticated or not user.is_active:
+            return False
+
+        if getattr(user, 'role', None) in {'Radmin', 'Rcaissier', 'Rcomptable', 'Rservent'}:
+            return True
+
+        return user.has_perm('payments.can_open_register')
     
     def handle_no_permission(self):
         messages.error(self.request, "Vous n'avez pas la permission d'ouvrir une caisse.")
-        return super().handle_no_permission()
+        return redirect('payments:dashboard_caisse')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

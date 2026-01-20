@@ -24,12 +24,22 @@
 
             <div class="form-group">
                 <label class="form-label">Type de dépense *</label>
-                <select name="type_depense" class="form-select" required>
+                <select name="type_depense" class="form-select">
                     <option value="">Sélectionnez un type...</option>
                     {% for t in types_depense %}
                         <option value="{{ t.id }}">{{ t.nom }}</option>
                     {% endfor %}
                 </select>
+                <div style="margin-top: 10px;">
+                    <label class="form-label">Ou saisir un nouveau type</label>
+                    <input class="form-input" name="type_depense_name" type="text" list="types-depense-list" placeholder="Ex: Transport, Achat, Électricité">
+                    <datalist id="types-depense-list">
+                        {% for t in types_depense %}
+                            <option value="{{ t.nom }}"></option>
+                        {% endfor %}
+                    </datalist>
+                    <span class="form-hint">Si vous remplissez ce champ, le type sera créé automatiquement s'il n'existe pas.</span>
+                </div>
             </div>
 
             <div class="form-group">

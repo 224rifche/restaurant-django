@@ -394,25 +394,50 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Conserver / restaurer la position de scroll entre navigations
+    // Objectif: éviter que la page remonte en haut après POST/redirect (panier/commande/menu)
     try {
-      const key = 'scroll:' + window.location.pathname + window.location.search;
-      const saved = sessionStorage.getItem(key);
-      if (saved !== null) {
-        const y = parseInt(saved, 10);
-        if (!Number.isNaN(y)) {
-          window.scrollTo(0, y);
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      const key = 'scroll:' + window.location.pathname;
+
+      function restoreScroll() {
+        const saved = sessionStorage.getItem(key);
+        if (saved !== null) {
+          const y = parseInt(saved, 10);
+          if (!Number.isNaN(y)) {
+            window.scrollTo(0, y);
+          }
         }
       }
 
+      function saveScroll() {
+        sessionStorage.setItem(key, String(window.scrollY || 0));
+      }
+
+      // Restaurer dès que possible
+      restoreScroll();
+
+      // Sauvegarder pendant le scroll (throttled)
       let ticking = false;
       window.addEventListener('scroll', function() {
         if (ticking) return;
         ticking = true;
         window.requestAnimationFrame(function() {
-          sessionStorage.setItem(key, String(window.scrollY || 0));
+          saveScroll();
           ticking = false;
         });
       }, { passive: true });
+
+      // Sauvegarder aussi quand on quitte la page (cas où on n'a pas scrollé)
+      window.addEventListener('beforeunload', saveScroll);
+      window.addEventListener('pagehide', saveScroll);
+
+      // Support bfcache: ré-appliquer au retour
+      window.addEventListener('pageshow', function() {
+        restoreScroll();
+      });
     } catch (e) {
       // ignore
     }
