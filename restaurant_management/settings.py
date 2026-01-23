@@ -129,11 +129,11 @@ if not DEBUG:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'railway',
-        'USER': 'root',
-        'PASSWORD': 'qfwbhaOFfumhinTZCSpAYyDpccXUcgJL',
-        'HOST': 'metro.proxy.rlwy.net',
-        'PORT': '44250',
+        'NAME': os.getenv('MYSQLDATABASE'),
+        'USER': os.getenv('MYSQLUSER'),
+        'PASSWORD': os.getenv('MYSQLPASSWORD'),
+        'HOST': os.getenv('MYSQLHOST'),
+        'PORT': int(os.getenv('MYSQLPORT', 3306)),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'ssl': {'ssl': {}}  # Active SSL
