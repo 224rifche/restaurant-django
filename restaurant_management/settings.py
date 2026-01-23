@@ -129,17 +129,26 @@ if not DEBUG:
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQLDATABASE'),
-        'USER': os.getenv('MYSQLUSER'),
-        'PASSWORD': os.getenv('MYSQLPASSWORD'),
-        'HOST': os.getenv('MYSQLHOST'),
-        'PORT': int(os.getenv('MYSQLPORT', 3306)),
+        'NAME': os.getenv('MYSQLDATABASE', 'railway'),
+        'USER': os.getenv('MYSQLUSER', 'root'),
+        'PASSWORD': os.getenv('MYSQLPASSWORD', 'qfwbhaOFfumhinTZCSpAYyDpccXUcgJL'),
+        'HOST': os.getenv('MYSQLHOST', 'metro.proxy.rlwy.net'),
+        'PORT': os.getenv('MYSQLPORT', '44250'),  # Laissez en tant que chaîne
         'OPTIONS': {
             'charset': 'utf8mb4',
-            'ssl': {'ssl': {}}  # Active SSL
+            'ssl': {'ssl': {}}
         }
     }
 }
+
+# Configuration alternative avec dj_database_url
+if os.environ.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=False,
+        conn_max_identity_ltree=100  # Ajout de cette option
+    )
 
 
 
