@@ -131,9 +131,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'railway',
         'USER': 'root',
-        'PASSWORD': 'zUvosleWnVLYaxKItTktuOEuodqgIXiB',
-        'HOST': 'ballast.proxy.rlwy.net',
-        'PORT': '19671',
+        'PASSWORD': 'qfwbhaOFfumhinTZCSpAYyDpccXUcgJL',
+        'HOST': 'metro.proxy.rlwy.net',
+        'PORT': '44250',
         'OPTIONS': {
             'charset': 'utf8mb4',
             'ssl': {'ssl': {}}  # Active SSL
@@ -141,12 +141,7 @@ DATABASES = {
     }
 }
 
-# Configuration alternative avec dj_database_url (recommandé)
-if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+
 
 # Configuration pour la base de données de production via DATABASE_URL (prioritaire)
 DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')
