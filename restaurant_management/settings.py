@@ -147,7 +147,7 @@ if os.environ.get('DATABASE_URL'):
         conn_max_age=600,
         conn_health_checks=True,
         ssl_require=False,
-        conn_max_identity_ltree=100  # Ajout de cette option
+       # conn_max_identity_ltree=100  # Ajout de cette option
     )
 
 
