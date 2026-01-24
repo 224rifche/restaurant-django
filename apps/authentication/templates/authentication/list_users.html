@@ -84,7 +84,7 @@
                         </span>
                     </td>
                     <td>
-                        <select class="form-select" onchange="handleUserAction(this, {{ u.id }}, {{ u.is_active|yesno:'true,false' }}, {{ u.id == request.user.id|yesno:'true,false' }})">
+                        <select class="form-select" onchange="handleUserAction(this, {{ u.id }}, {{ u.is_active|yesno:'true,false' }}, {% if u.id == request.user.id %}true{% else %}false{% endif %})">
                             <option value="">Actions...</option>
                             <option value="edit">✏️ Modifier</option>
                             {% if u != request.user %}
