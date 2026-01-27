@@ -22,71 +22,7 @@ def is_admin(user):
     return user.is_authenticated and user.role == 'Radmin'
 
 
-class QRCodeLoginView(View):
-    """Vue pour gérer la connexion via QR code"""
-    
-    def get(self, request, token):
-        try:
-            table = TableRestaurant.objects.get(qr_token=token)
-            
-            # Vérifier si la table est bloquée
-            if table.is_blocked():
-                messages.error(request, "Cette table est actuellement bloquée.")
-                return redirect('authentication:login')
-            
-            # Si l'utilisateur est déjà connecté, on le déconnecte
-            if request.user.is_authenticated:
-                from django.contrib.auth import logout
-                logout(request)
-            
-            # Récupérer l'utilisateur associé à la table
-            user = table.user
-            if not user:
-                messages.error(request, "Aucun utilisateur n'est associé à cette table.")
-                return redirect('authentication:login')
 
-            next_url = (request.GET.get('next') or '').strip()
-            url = reverse('authentication:login')
-            query = f"?username={user.login}"
-            if next_url:
-                query += f"&next={next_url}"
-            return redirect(f"{url}{query}")
-            
-        except TableRestaurant.DoesNotExist:
-            messages.error(request, "Lien de connexion invalide ou expiré.")
-            return redirect('authentication:login')
-    
-    def post(self, request, token):
-        try:
-            table = TableRestaurant.objects.get(qr_token=token)
-            
-            # Vérifier si la table est bloquée
-            if table.is_blocked():
-                messages.error(request, "Cette table est actuellement bloquée.")
-                return redirect('authentication:login')
-            
-            # Authentifier l'utilisateur
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-            user = authenticate(request, username=username, password=password)
-            
-            if user is not None and user == table.user:
-                login(request, user)
-                # Enregistrer les informations de connexion
-                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-                ip_address = x_forwarded_for.split(',')[0] if x_forwarded_for else request.META.get('REMOTE_ADDR')
-                table.record_login(ip_address)
-                
-                # Rediriger vers la page d'accueil ou l'URL demandée
-                next_url = request.POST.get('next') or 'authentication:redirect_after_login'
-                return redirect(next_url)
-            else:
-                messages.error(request, "Identifiants invalides.")
-                return redirect('tables:qr_login', token=token)
-                
-        except TableRestaurant.DoesNotExist:
-            messages.error(request, "Lien de connexion invalide ou expiré.")
-            return redirect('authentication:login')
 
 
 @method_decorator(login_required, name='dispatch')
@@ -122,8 +58,8 @@ def generate_qr_code(request, table_id, download=False):
     if not table.qr_token:
         table.generate_qr_token()
     
-    # Générer l'URL de connexion
-    qr_url = request.build_absolute_uri(reverse('tables:qr_login', kwargs={'token': table.qr_token}))
+    # URL de base du site
+    base_url = request.build_absolute_uri('/')
     
     # Générer le QR code
     qr = qrcode.QRCode(
@@ -132,7 +68,7 @@ def generate_qr_code(request, table_id, download=False):
         box_size=10,
         border=4,
     )
-    qr.add_data(qr_url)
+    qr.add_data(base_url)
     qr.make(fit=True)
     
     img = qr.make_image(fill_color="black", back_color="white")
