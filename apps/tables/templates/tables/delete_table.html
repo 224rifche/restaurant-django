@@ -13,12 +13,22 @@
 <div class="card" style="max-width: 500px;">
     <div style="text-align: center; padding: 20px;">
         <div class="stat-card__icon" style="width: 64px; height: 64px; margin: 0 auto 16px; background: rgba(239, 68, 68, 0.15); font-size: 32px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">🪑</div>
-        <h3 style="margin: 0 0 8px;">Table {{ object.numero_table }}</h3>
-        <span class="badge badge--neutral">{{ object.nombre_places }} places</span>
+        <h3 style="margin: 0 0 8px;">Table {{ table.numero_table }}</h3>
+        <span class="badge badge--neutral">{{ table.nombre_places }} places</span>
     </div>
     
     <div class="message message--warning" style="margin: 20px 0;">
         ⚠️ Êtes-vous sûr de vouloir supprimer cette table ?
+        {% if table.commandes.count > 0 or table.paniers.count > 0 %}
+        <br><br>
+        <strong>Attention:</strong> Cette table a des données associées qui seront également supprimées:
+        {% if table.commandes.count > 0 %}
+        <br>• {{ table.commandes.count }} commande(s)
+        {% endif %}
+        {% if table.paniers.count > 0 %}
+        <br>• {{ table.paniers.count }} panier(s)
+        {% endif %}
+        {% endif %}
     </div>
 
     <form method="post">

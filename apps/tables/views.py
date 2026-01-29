@@ -55,8 +55,25 @@ def delete_table(request, table_id):
     
     if request.method == 'POST':
         numero = table.numero_table
-        table.delete()
-        messages.success(request, f'Table {numero} supprimée avec succès.')
+        
+        # Vérifier s'il y a des commandes (toutes sont protégées par PROTECT)
+        commandes_count = table.commandes.count()
+        if commandes_count > 0:
+            messages.error(request, f'Impossible de supprimer la table {numero}: {commandes_count} commande(s) associée(s). Veuillez d\'abord supprimer ou archiver les commandes.')
+            return render(request, 'tables/delete_table.html', {'table': table})
+        
+        # Vérifier s'il y a des paniers
+        paniers_count = table.paniers.count()
+        if paniers_count > 0:
+            messages.error(request, f'Impossible de supprimer la table {numero}: {paniers_count} panier(s) associé(s).')
+            return render(request, 'tables/delete_table.html', {'table': table})
+        
+        try:
+            table.delete()
+            messages.success(request, f'Table {numero} supprimée avec succès.')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression: {str(e)}')
+        
         return redirect('tables:list_tables')
     
     return render(request, 'tables/delete_table.html', {'table': table})

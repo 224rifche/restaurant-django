@@ -83,9 +83,13 @@ class TableRestaurant(models.Model):
         if request:
             base_url = request.build_absolute_uri('/')
         else:
-            base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000'
-            
-        return f"{base_url}qr/login/{self.qr_token}/"
+            base_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'http://localhost:8000/'
+            # Assurez-vous que base_url se termine par un slash
+            if not base_url.endswith('/'):
+                base_url += '/'
+        
+        # Construire l'URL complète pour la connexion QR
+        return f"{base_url}tables/qr/login/{self.qr_token}/"
     
     def block(self):
         """Bloque la table"""

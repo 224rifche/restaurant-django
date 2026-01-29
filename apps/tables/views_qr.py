@@ -6,13 +6,14 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 from .models import TableRestaurant
 from apps.authentication.models import CustomUser
@@ -22,7 +23,76 @@ def is_admin(user):
     return user.is_authenticated and user.role == 'Radmin'
 
 
+def get_client_ip(request):
+    """Récupère l'adresse IP du client"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
+
+class QRCodeLoginView(View):
+    """Vue pour la connexion via QR code"""
+    template_name = 'tables/qr_login.html'
+    
+    def get(self, request, token):
+        """Affiche la page de connexion via QR code"""
+        try:
+            table = TableRestaurant.objects.get(qr_token=token)
+        except TableRestaurant.DoesNotExist:
+            messages.error(request, "QR Code invalide ou expiré.")
+            return redirect('authentication:login')
+        
+        # Vérifier si la table est bloquée
+        if table.is_blocked():
+            messages.error(request, f"La table {table.numero_table} est actuellement bloquée.")
+            return redirect('authentication:login')
+        
+        # Vérifier si la table a un utilisateur associé
+        if not table.user:
+            messages.error(request, f"Aucun utilisateur n'est associé à la table {table.numero_table}.")
+            return redirect('authentication:login')
+        
+        context = {
+            'table': table,
+            'token': token,
+        }
+        return render(request, self.template_name, context)
+    
+    def post(self, request, token):
+        """Traite la connexion via QR code"""
+        try:
+            table = TableRestaurant.objects.get(qr_token=token)
+        except TableRestaurant.DoesNotExist:
+            messages.error(request, "QR Code invalide ou expiré.")
+            return redirect('authentication:login')
+        
+        # Vérifier si la table est bloquée
+        if table.is_blocked():
+            messages.error(request, f"La table {table.numero_table} est actuellement bloquée.")
+            return redirect('authentication:login')
+        
+        # Vérifier si la table a un utilisateur associé
+        if not table.user:
+            messages.error(request, f"Aucun utilisateur n'est associé à la table {table.numero_table}.")
+            return redirect('authentication:login')
+        
+        # Connexion automatique de l'utilisateur
+        user = table.user
+        
+        # Enregistrer l'IP et la date de connexion
+        ip_address = get_client_ip(request)
+        table.record_login(ip_address)
+        
+        # Connecter l'utilisateur
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        
+        messages.success(request, f"Bienvenue ! Vous êtes connecté à la table {table.numero_table}.")
+        
+        # Rediriger vers la page de détails de la table
+        return redirect('tables:table_detail', table_id=table.id)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -58,8 +128,8 @@ def generate_qr_code(request, table_id, download=False):
     if not table.qr_token:
         table.generate_qr_token()
     
-    # URL de base du site
-    base_url = request.build_absolute_uri('/')
+    # Construire l'URL complète pour le QR code
+    qr_login_url = table.get_qr_code_url(request)
     
     # Générer le QR code
     qr = qrcode.QRCode(
@@ -68,7 +138,7 @@ def generate_qr_code(request, table_id, download=False):
         box_size=10,
         border=4,
     )
-    qr.add_data(base_url)
+    qr.add_data(qr_login_url)
     qr.make(fit=True)
     
     img = qr.make_image(fill_color="black", back_color="white")
