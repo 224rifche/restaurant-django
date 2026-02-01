@@ -21,60 +21,58 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
 @role_required(['Rtable', 'Radmin'])
-@cache_page(30)  # Mise en cache pendant 30 secondes
+# @cache_page(30)  # Cache désactivé pour le debug
 def view_cart(request):
-    # Clé de cache unique pour chaque utilisateur
-    cache_key = f'cart_{request.user.id}'
+    # Cache désactivé pour le debug
+    # cache_key = f'cart_{request.user.id}'
+    # cached_data = cache.get(cache_key)
     
-    # Essayer de récupérer les données du cache
-    cached_data = cache.get(cache_key)
+    # if cached_data is None:
+    # Récupérer le panier actif de la table de l'utilisateur avec des requêtes optimisées
+    table = request.user.tables.first()
     
-    if cached_data is None:
-        # Récupérer le panier actif de la table de l'utilisateur avec des requêtes optimisées
-        table = request.user.tables.only('id').first()
+    if not table:
+        messages.error(request, "Aucune table n'est associée à votre compte.")
+        return redirect('menu:list_dishes')
         
-        if not table:
-            messages.error(request, "Aucune table n'est associée à votre compte.")
-            return redirect('menu:list_dishes')
-            
-        try:
-            # Utilisation de select_related et prefetch_related pour optimiser les requêtes
-            panier = Panier.objects.select_related('table').prefetch_related(
-                'items__plat'
-            ).get(table=table, is_active=True)
-            
-            items = list(
-                panier.items.select_related('plat').only(
-                    'id', 'quantite', 'prix_unitaire', 'notes',
-                    'plat__id', 'plat__nom', 'plat__prix_unitaire'
-                ).all()
-            )
-            
-            # Calculer le total manuellement pour éviter des requêtes supplémentaires
-            total = sum(item.prix_unitaire * item.quantite for item in items)
-            
-        except Panier.DoesNotExist:
-            panier = None
-            items = []
-            total = Decimal('0.00')
+    try:
+        # Utilisation de select_related et prefetch_related pour optimiser les requêtes
+        panier = Panier.objects.select_related('table').prefetch_related(
+            'items__plat'
+        ).get(table=table, is_active=True)
         
-        # Préparer le contexte
-        context = {
-            'panier': panier,
-            'items': items,
-            'total': total,
-        }
+        items = list(
+            panier.items.select_related('plat').only(
+                'id', 'quantite', 'prix_unitaire', 'notes',
+                'plat__id', 'plat__nom', 'plat__prix_unitaire'
+            ).all()
+        )
         
-        # Mettre en cache pendant 30 secondes
-        cache.set(cache_key, context, 30)
-    else:
-        context = cached_data
+        # Calculer le total manuellement pour éviter des requêtes supplémentaires
+        total = sum(item.prix_unitaire * item.quantite for item in items)
+        
+    except Panier.DoesNotExist:
+        panier = None
+        items = []
+        total = Decimal('0.00')
+    
+    # Préparer le contexte
+    context = {
+        'panier': panier,
+        'items': items,
+        'total': total,
+    }
+    
+    # Mettre en cache pendant 30 secondes
+    # cache.set(cache_key, context, 30)
+    # else:
+    #     context = cached_data
     
     return render(request, 'orders/view_cart.html', context)
 
 @csrf_exempt
 @login_required
-@role_required(['Rservent', 'Radmin'])
+@role_required(['Rtable', 'Rservent', 'Radmin'])
 def add_to_cart(request, plat_id):
     if request.method != 'POST':
         return JsonResponse({
@@ -87,14 +85,14 @@ def add_to_cart(request, plat_id):
         quantite = int(request.POST.get('quantite', 1))
         notes = request.POST.get('notes', '')
         
-        # Récupérer la table active de l'utilisateur
-        table = request.user.tables.filter(is_active=True).first()
+        # Récupérer la table de l'utilisateur connecté via QR
+        table = request.user.tables.first()
         
         if not table:
-            messages.error(request, "Aucune table active trouvée pour votre compte.")
+            messages.error(request, "Aucune table trouvée pour votre compte.")
             return redirect('menu:list_dishes')
             
-        plat = get_object_or_404(Plat, id=plat_id, est_actif=True)
+        plat = get_object_or_404(Plat, id=plat_id, disponible=True)
         
         with transaction.atomic():
             # Récupérer ou créer un panier actif pour la table
@@ -109,7 +107,7 @@ def add_to_cart(request, plat_id):
                 panier=panier,
                 plat=plat,
                 defaults={
-                    'prix_unitaire': plat.prix,
+                    'prix_unitaire': plat.prix_unitaire,
                     'quantite': quantite,
                     'notes': notes
                 }
@@ -122,14 +120,25 @@ def add_to_cart(request, plat_id):
                 panier_item.save()
             
             messages.success(request, f"{plat.nom} a été ajouté à votre panier.")
-            return redirect('orders:view_cart')
+            
+            # Retourner une réponse JSON pour AJAX
+            return JsonResponse({
+                'success': True,
+                'message': f"{plat.nom} a été ajouté à votre panier.",
+                'cart_count': panier.items.count(),
+                'cart_total': str(panier.total)
+            })
             
     except (Plat.DoesNotExist, TableRestaurant.DoesNotExist, ValueError) as e:
-        messages.error(request, str(e) if str(e) else 'Erreur lors de l\'ajout au panier')
-        return redirect('menu:list_dishes')
+        return JsonResponse({
+            'success': False,
+            'message': str(e) if str(e) else 'Erreur lors de l\'ajout au panier'
+        }, status=400)
     except Exception as e:
-        messages.error(request, 'Une erreur est survenue lors de l\'ajout au panier.')
-        return redirect('menu:list_dishes')
+        return JsonResponse({
+            'success': False,
+            'message': 'Une erreur est survenue lors de l\'ajout au panier.'
+        }, status=500)
 
 @require_POST
 @csrf_exempt
@@ -179,7 +188,11 @@ def update_cart_item(request, item_id):
         messages.error(request, "Aucune table n'est associée à votre compte.")
         return redirect('menu:list_dishes')
         
-    item = get_object_or_404(PanierItem, id=item_id, panier__table=table)
+    try:
+        item = PanierItem.objects.get(id=item_id, panier__table=table)
+    except PanierItem.DoesNotExist:
+        messages.error(request, "Cet article n'existe plus dans votre panier.")
+        return redirect('orders:view_cart')
     
     if request.method == 'POST':
         form = UpdateCartItemForm(request.POST, instance=item)
@@ -213,7 +226,11 @@ def remove_from_cart_view(request, item_id):
         messages.error(request, "Aucune table n'est associée à votre compte.")
         return redirect('menu:list_dishes')
     
-    item = get_object_or_404(PanierItem, id=item_id, panier__table=table)
+    try:
+        item = PanierItem.objects.get(id=item_id, panier__table=table)
+    except PanierItem.DoesNotExist:
+        messages.error(request, "Cet article n'existe plus dans votre panier.")
+        return redirect('orders:view_cart')
     
     if request.method == 'POST':
         panier = item.panier
@@ -304,7 +321,7 @@ def order_confirmation(request, order_id):
     commande = get_object_or_404(Commande, id=order_id, table=table)
     return render(request, 'orders/order_confirmation.html', {'commande': commande})
 
-@role_required(['Rservent', 'Radmin', 'Rcaissier'])
+@role_required(['Rtable', 'Rservent', 'Radmin', 'Rcaissier'])
 @transaction.atomic
 @login_required
 def list_orders(request):
@@ -312,7 +329,16 @@ def list_orders(request):
     # (sinon on risque d'afficher des messages obsolètes après navigation).
     statut = request.GET.get('statut')
 
-    base_qs = Commande.objects.all()
+    # Si l'utilisateur est une table, ne montrer que ses commandes
+    if request.user.role == 'Rtable':
+        table = request.user.tables.first()
+        if not table:
+            messages.error(request, "Aucune table n'est associée à votre compte.")
+            return redirect('menu:list_dishes')
+        
+        base_qs = Commande.objects.filter(table=table)
+    else:
+        base_qs = Commande.objects.all()
 
     if statut in ['en_attente', 'servie', 'payee']:
         orders = base_qs.filter(statut=statut)
@@ -580,3 +606,30 @@ def invoice_order(request, order_id):
         'commande': commande,
         'items': items
     })
+@role_required(['Rtable', 'Rservent', 'Radmin'])
+def delete_order(request, order_id):
+    """Supprimer une commande (uniquement si elle est en attente)"""
+    commande = get_object_or_404(Commande, id=order_id)
+    
+    # Vérifier les permissions
+    if request.user.role == 'Rtable':
+        # Les utilisateurs de table ne peuvent supprimer que leurs propres commandes
+        table = request.user.tables.first()
+        if not table or commande.table != table:
+            messages.error(request, "Vous n'avez pas la permission de supprimer cette commande.")
+            return redirect('orders:list_orders')
+    
+    # Vérifier que la commande est en attente (seul ce statut peut être supprimé)
+    if commande.statut != 'en_attente':
+        messages.error(request, f"Impossible de supprimer la commande {commande.numero_commande} car elle est déjà {commande.get_statut_display()}.")
+        return redirect('orders:list_orders')
+    
+    if request.method == 'POST':
+        # Confirmer la suppression
+        commande_numero = commande.numero_commande
+        commande.delete()
+        messages.success(request, f"La commande {commande_numero} a été supprimée avec succès.")
+        return redirect('orders:list_orders')
+    
+    # Afficher la page de confirmation
+    return render(request, 'orders/delete_order.html', {'commande': commande})

@@ -13,7 +13,8 @@ def list_dishes(request):
     cat = (request.GET.get('cat') or '').strip()
     plats = Plat.objects.filter(disponible=True)
     if cat and (not categories or cat in categories):
-        plats = plats.filter(categorie=cat)
+        # Filtrer par nom de catégorie via la foreign key
+        plats = plats.filter(categorie__nom=cat)
     if q:
         plats = plats.filter(Q(nom__icontains=q) | Q(description__icontains=q))
     plats = plats.order_by('nom')
@@ -81,8 +82,35 @@ def delete_dish(request, dish_id):
     
     if request.method == 'POST':
         nom = plat.nom
-        plat.delete()
-        messages.success(request, f'Plat "{nom}" supprimé avec succès.')
+        
+        try:
+            # Vérifier si le plat est référencé dans des paniers ou commandes
+            from apps.orders.models import PanierItem, CommandeItem
+            
+            panier_items = PanierItem.objects.filter(plat=plat)
+            commande_items = CommandeItem.objects.filter(plat=plat)
+            
+            if panier_items.exists() or commande_items.exists():
+                # Marquer le plat comme non disponible au lieu de le supprimer
+                plat.disponible = False
+                plat.save()
+                
+                # Compter les références pour le message
+                panier_count = panier_items.count()
+                commande_count = commande_items.count()
+                
+                messages.warning(request, 
+                    f'Le plat "{nom}" ne peut pas être supprimé car il est utilisé dans '
+                    f'{panier_count} panier(s) et {commande_count} commande(s). '
+                    f'Il a été marqué comme non disponible à la place.')
+            else:
+                # Supprimer le plat s'il n'est pas référencé
+                plat.delete()
+                messages.success(request, f'Plat "{nom}" supprimé avec succès.')
+                
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression du plat: {str(e)}')
+        
         return redirect('menu:manage_dishes')
     
     return render(request, 'menu/delete_dish.html', {'plat': plat})

@@ -77,6 +77,11 @@ class PanierItem(models.Model):
     def __str__(self):
         return f"{self.quantite}x {self.plat.nom} (Panier {self.panier_id})"
 
+    @property
+    def sous_total(self):
+        """Calcule le sous-total pour cet article"""
+        return self.prix_unitaire * self.quantite
+
     def save(self, *args, **kwargs):
         # S'assurer que le prix unitaire est toujours à jour avec le plat
         if not self.pk or not self.prix_unitaire or self.prix_unitaire <= 0:

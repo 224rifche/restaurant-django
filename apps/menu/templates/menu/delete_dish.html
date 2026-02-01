@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load gnf %}
 
-{% block title %}Supprimer {{ object.nom }}{% endblock %}
+{% block title %}Supprimer {{ plat.nom }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -11,19 +11,29 @@
     </div>
 </div>
 
-<div class="card" style="max-width: 500px;">
+<div class="card" style="max-width: 600px;">
     <div style="text-align: center; padding: 20px;">
-        {% if object.image and object.image.name != 'plats/default.jpg' %}
-        <img src="{{ object.image.url }}" alt="{{ object.nom }}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; margin-bottom: 16px;">
+        {% if plat.image and plat.image.name != 'plats/default.jpg' %}
+        <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" style="width: 100px; height: 100px; border-radius: 12px; object-fit: cover; margin-bottom: 16px;">
         {% else %}
         <div style="width: 80px; height: 80px; margin: 0 auto 16px; background: rgba(239, 68, 68, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 36px;">🍽️</div>
         {% endif %}
-        <h3 style="margin: 0 0 8px;">{{ object.nom }}</h3>
-        <span class="badge badge--primary">{{ object.prix_unitaire|gnf }}</span>
+        <h3 style="margin: 0 0 8px;">{{ plat.nom }}</h3>
+        <span class="badge badge--primary">{{ plat.prix_unitaire|gnf }}</span>
+        {% if plat.categorie %}
+        <div style="margin-top: 8px; color: var(--text-secondary);">{{ plat.categorie.nom }}</div>
+        {% endif %}
     </div>
     
     <div class="message message--warning" style="margin: 20px 0;">
         ⚠️ Êtes-vous sûr de vouloir supprimer ce plat ? Cette action est définitive.
+    </div>
+
+    <div class="alert alert--info" style="margin: 20px 0;">
+        <div class="alert__icon">ℹ️</div>
+        <div class="alert__content">
+            <strong>Information :</strong> Si ce plat est utilisé dans des paniers ou des commandes existants, il sera marqué comme "non disponible" au lieu d'être supprimé pour préserver l'intégrité des données.
+        </div>
     </div>
 
     <form method="post">
@@ -34,4 +44,42 @@
         </div>
     </form>
 </div>
+
+<style>
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.alert--info {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #1e40af;
+}
+
+.alert__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.alert__content {
+    flex: 1;
+}
+
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.message--warning {
+    background: rgba(251, 191, 36, 0.1);
+    border-left-color: #f59e0b;
+    color: #92400e;
+}
+</style>
 {% endblock %}

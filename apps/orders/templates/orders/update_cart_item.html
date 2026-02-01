@@ -1,19 +1,108 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
-{% block title %}Modifier item{% endblock %}
+{% block title %}Modifier quantité{% endblock %}
 
 {% block content %}
-<h1 class="h1">Modifier quantité</h1>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">✏️ Modifier quantité</h1>
+        <p class="page-subtitle">{{ item.plat.nom }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'orders:view_cart' %}" class="btn btn--ghost">🔙 Retour au panier</a>
+    </div>
+</div>
 
-<div class="card">
+<div class="card" style="max-width: 500px;">
+    <div class="card__header">
+        <h3 class="card__title">Modifier la quantité</h3>
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+            {% if item.plat.image and item.plat.image.name != 'plats/default.jpg' %}
+            <img src="{{ item.plat.image.url }}" alt="{{ item.plat.nom }}" style="width: 60px; height: 60px; border-radius: 10px; object-fit: cover;">
+            {% else %}
+            <div style="width: 60px; height: 60px; border-radius: 10px; background: rgba(59, 130, 246, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px;">🍽️</div>
+            {% endif %}
+            <div>
+                <div style="font-weight: 600; font-size: 18px;">{{ item.plat.nom }}</div>
+                <div style="color: var(--text-secondary);">{{ item.prix_unitaire|gnf }} par unité</div>
+            </div>
+        </div>
+    </div>
+
     <form method="post" class="form">
         {% csrf_token %}
-        {{ form.non_field_errors }}
-        {{ form.as_p }}
-        <div class="actions">
-            <button class="btn btn--primary" type="submit">Enregistrer</button>
-            <a class="btn" href="{% url 'orders:view_cart' %}">Annuler</a>
+        {% if form.non_field_errors %}
+        <div class="message message--error">{{ form.non_field_errors }}</div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label class="form-label">Quantité</label>
+            {{ form.quantite }}
+            {% if form.quantite.errors %}<span class="form-error">{{ form.quantite.errors.0 }}</span>{% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Notes (optionnel)</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}<span class="form-error">{{ form.notes.errors.0 }}</span>{% endif %}
+        </div>
+
+        <div class="btn-group" style="justify-content: center; margin-top: 24px;">
+            <button class="btn btn--primary btn--lg" type="submit">💾 Enregistrer</button>
+            <a href="{% url 'orders:view_cart' %}" class="btn btn--ghost">Annuler</a>
         </div>
     </form>
 </div>
+
+<style>
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid;
+    margin-bottom: 16px;
+}
+
+.message--error {
+    background: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+    color: #991b1b;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-error {
+    color: #ef4444;
+    font-size: 14px;
+    margin-top: 4px;
+    display: block;
+}
+</style>
 {% endblock %}

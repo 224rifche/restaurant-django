@@ -1,71 +1,1027 @@
 {% extends 'base.html' %}
 {% load gnf %}
 
-{% block title %}Panier{% endblock %}
+{% block title %}Mon Panier{% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">🛒 Mon Panier</h1>
-        <p class="page-subtitle">Vérifiez votre commande avant de valider</p>
-    </div>
-    <div class="btn-group">
-        <a href="{% url 'menu:list_dishes' %}" class="btn btn--ghost">🍴 Retour au menu</a>
-        {% if items %}
-        <a href="{% url 'orders:create_order' %}" class="btn btn--primary">✅ Valider la commande</a>
-        {% endif %}
-    </div>
-</div>
-
-{% if items %}
-<div class="card">
-    <div class="card__header">
-        <h3 class="card__title">Articles dans le panier</h3>
-        <span class="badge badge--primary">{{ items|length }} article{{ items|length|pluralize }}</span>
-    </div>
-    
-    <div class="activity-list">
-        {% for item in items %}
-        <div class="activity-item" style="padding: 16px 0;">
-            {% if item.plat.image and item.plat.image.name != 'plats/default.jpg' %}
-            <img src="{{ item.plat.image.url }}" alt="{{ item.plat.nom }}" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: rgba(59, 130, 246, 0.15);">
-            {% else %}
-            <div class="activity-item__icon" style="background: rgba(59, 130, 246, 0.15); font-size: 20px;">🍽️</div>
-            {% endif %}
-            <div class="activity-item__content" style="flex: 1;">
-                <div class="activity-item__title">{{ item.plat.nom }}</div>
-                <div class="activity-item__time">{{ item.prix_unitaire|gnf }} × {{ item.quantite }}</div>
+<div class="cart-page">
+    <!-- Header -->
+    <div class="cart-header">
+        <div class="cart-header__content">
+            <div class="cart-header__text">
+                <h1 class="cart-header__title">
+                    <span class="cart-icon">🛒</span>
+                    Mon Panier
+                </h1>
+                <p class="cart-header__subtitle">Vérifiez votre commande avant de valider</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <strong style="color: var(--accent-primary); font-size: 18px;">{{ item.sous_total|gnf }}</strong>
-                <div class="btn-group">
-                    <a class="btn btn--sm btn--ghost" href="{% url 'orders:update_cart_item' item.id %}">✏️</a>
-                    <a class="btn btn--sm btn--danger" href="{% url 'orders:remove_from_cart' item.id %}">🗑️</a>
+            <div class="cart-header__actions">
+                <a href="{% url 'menu:list_dishes' %}" class="btn btn--outline">
+                    <span class="btn-icon">←</span>
+                    Continuer mes achats
+                </a>
+                {% if items %}
+                <a href="{% url 'orders:create_order' %}" class="btn btn--primary btn--pulse">
+                    <span class="btn-icon">✅</span>
+                    Valider la commande
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if items %}
+    <!-- Cart Content -->
+    <div class="cart-content">
+        <!-- Items Grid -->
+        <div class="cart-items">
+            <div class="cart-items__header">
+                <h2 class="cart-items__title">
+                    <span class="badge badge--primary">{{ items|length }}</span>
+                    Articles dans votre panier
+                </h2>
+                <div class="cart-items__summary">
+                    <span class="summary-label">Total estimé :</span>
+                    <span class="summary-value">{{ total|gnf }}</span>
+                </div>
+            </div>
+
+            <div class="cart-items__list">
+                {% for item in items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <!-- Item Image -->
+                    <div class="cart-item__image">
+                        {% if item.plat.image and item.plat.image.name != 'plats/default.jpg' %}
+                        <img src="{{ item.plat.image.url }}" alt="{{ item.plat.nom }}" class="item-image">
+                        {% else %}
+                        <div class="item-image placeholder">
+                            <span class="placeholder-icon">🍽️</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Item Details -->
+                    <div class="cart-item__details">
+                        <div class="item-header">
+                            <h3 class="item-name">{{ item.plat.nom }}</h3>
+                            <div class="item-price">
+                                <span class="price-unit">{{ item.prix_unitaire|gnf }}</span>
+                                <span class="price-separator">×</span>
+                                <span class="price-quantity">{{ item.quantite }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if item.notes %}
+                        <div class="item-notes">
+                            <span class="notes-icon">📝</span>
+                            {{ item.notes }}
+                        </div>
+                        {% endif %}
+
+                        <div class="item-actions">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn quantity-btn--decrease" onclick="updateQuantity({{ item.id }}, -1)">
+                                    <span>−</span>
+                                </button>
+                                <input type="number" class="quantity-input" value="{{ item.quantite }}" min="1" max="10" readonly>
+                                <button class="quantity-btn quantity-btn--increase" onclick="updateQuantity({{ item.id }}, 1)">
+                                    <span>+</span>
+                                </button>
+                            </div>
+                            
+                            <div class="item-total">
+                                <span class="total-label">Sous-total</span>
+                                <span class="total-value">{{ item.sous_total|gnf }}</span>
+                            </div>
+
+                            <div class="item-manage">
+                                <button class="btn-icon btn-icon--edit" onclick="editItem({{ item.id }})" title="Modifier">
+                                    <span>✏️</span>
+                                </button>
+                                <button class="btn-icon btn-icon--delete" onclick="deleteItem({{ item.id }})" title="Supprimer">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Total Section -->
+        <div class="total-section">
+            <div class="total-card">
+                <div class="total-header">
+                    <h3 class="total-title">Total à payer</h3>
+                    <span class="total-amount">{{ total|gnf }}</span>
+                </div>
+                
+                <div class="total-actions">
+                    <a href="{% url 'menu:list_dishes' %}" class="btn btn--outline">
+                        <span class="btn-icon">←</span>
+                        Continuer mes achats
+                    </a>
+                    <a href="{% url 'orders:create_order' %}" class="btn btn--primary btn--large">
+                        <span class="btn-icon">✅</span>
+                        Valider la commande
+                    </a>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
-    
-    <div style="border-top: 2px solid var(--border-color); padding-top: 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 18px; color: var(--text-secondary);">Total à payer</span>
-        <span style="font-size: 32px; font-weight: 700; color: var(--accent-success);">{{ total|gnf }}</span>
+
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="empty-cart">
+        <div class="empty-cart__content">
+            <div class="empty-cart__icon">
+                <span class="empty-icon">🛒</span>
+            </div>
+            <h2 class="empty-cart__title">Votre panier est vide</h2>
+            <p class="empty-cart__description">
+                Découvrez nos délicieux plats et remplissez votre panier !
+            </p>
+            <div class="empty-cart__actions">
+                <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary btn--large">
+                    <span class="btn-icon">🍴</span>
+                    Voir le menu
+                </a>
+                <a href="{% url 'orders:list_orders' %}" class="btn btn--outline">
+                    <span class="btn-icon">📋</span>
+                    Mes commandes
+                </a>
+            </div>
+        </div>
     </div>
-    
-    <div class="btn-group" style="margin-top: 24px; justify-content: center;">
-        <a href="{% url 'orders:create_order' %}" class="btn btn--primary btn--lg">✅ Valider ma commande</a>
+    {% endif %}
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal__content">
+        <div class="modal__header">
+            <h3 class="modal__title">Modifier l'article</h3>
+            <button class="modal__close" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="modal__body">
+            <form id="editForm" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Quantité</label>
+                    <div class="quantity-selector">
+                        <button type="button" class="quantity-btn" onclick="changeQuantity(-1)">−</button>
+                        <input type="number" id="editQuantity" name="quantite" min="1" max="10" value="1">
+                        <button type="button" class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (optionnel)</label>
+                    <textarea id="editNotes" name="notes" class="form-input" rows="3" placeholder="Instructions spéciales..."></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--outline" onclick="closeEditModal()">Annuler</button>
+            <button class="btn btn--primary" onclick="saveEdit()">Enregistrer</button>
+        </div>
     </div>
 </div>
-{% else %}
-<div class="card" style="text-align: center; padding: 60px 40px;">
-    <div class="empty-state">
-        <div class="empty-state__icon" style="font-size: 64px;">🛒</div>
-        <h2 class="empty-state__title" style="font-size: 24px; margin-top: 24px;">Votre panier est vide</h2>
-        <p class="empty-state__description" style="max-width: 400px; margin: 12px auto 32px;">
-            Parcourez notre menu et ajoutez des plats délicieux à votre panier.
-        </p>
-        <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary btn--lg">🍴 Voir le menu</a>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal__content modal__content--small">
+        <div class="modal__header">
+            <h3 class="modal__title">Confirmer la suppression</h3>
+            <button class="modal__close" onclick="closeDeleteModal()">×</button>
+        </div>
+        <div class="modal__body">
+            <div class="warning-message">
+                <span class="warning-icon">⚠️</span>
+                <p>Êtes-vous sûr de vouloir retirer cet article de votre panier ?</p>
+            </div>
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--outline" onclick="closeDeleteModal()">Annuler</button>
+            <button class="btn btn--danger" onclick="confirmDelete()">Supprimer</button>
+        </div>
     </div>
 </div>
-{% endif %}
+
+<style>
+/* Cart Page Styles */
+.cart-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header */
+.cart-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.cart-header__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.cart-header__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cart-icon {
+    font-size: 2.5rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+.cart-header__subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 5px 0 0 0;
+}
+
+.cart-header__actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Cart Content */
+.cart-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Cart Items */
+.cart-items {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.cart-items__header {
+    padding: 25px 30px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-items__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-items__summary {
+    text-align: right;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #64748b;
+    display: block;
+}
+
+.summary-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.cart-items__list {
+    padding: 20px;
+}
+
+/* Cart Item */
+.cart-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.cart-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border-color: #3b82f6;
+}
+
+.cart-item__image {
+    flex-shrink: 0;
+}
+
+.item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.item-image.placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder-icon {
+    font-size: 2rem;
+    color: white;
+}
+
+.cart-item__details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.item-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0;
+    line-height: 1.3;
+}
+
+.item-price {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    color: #059669;
+}
+
+.price-separator {
+    opacity: 0.7;
+}
+
+.item-notes {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notes-icon {
+    font-size: 1rem;
+}
+
+.item-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Quantity Controls */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.quantity-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    border: none;
+    font-weight: 600;
+    font-size: 1rem;
+    background: transparent;
+}
+
+.item-total {
+    text-align: right;
+    flex: 1;
+}
+
+.total-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    display: block;
+}
+
+.total-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.item-manage {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-icon--edit {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.btn-icon--edit:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-icon--delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.btn-icon--delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Total Section */
+.total-section {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.total-card {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: white;
+    padding: 30px;
+}
+
+.total-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.total-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.total-amount {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.total-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Empty Cart */
+.empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-cart__content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.empty-cart__icon {
+    font-size: 6rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-cart__title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 15px;
+}
+
+.empty-cart__description {
+    font-size: 1.1rem;
+    color: #64748b;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.empty-cart__actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal__content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.modal__content--small {
+    max-width: 400px;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal__header {
+    padding: 25px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal__title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.modal__close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.modal__close:hover {
+    background: #e2e8f0;
+}
+
+.modal__body {
+    padding: 25px;
+}
+
+.modal__footer {
+    padding: 25px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.quantity-selector .quantity-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.quantity-selector input {
+    width: 60px;
+    text-align: center;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.warning-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #991b1b;
+}
+
+.warning-icon {
+    font-size: 1.5rem;
+}
+
+/* Button Styles */
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn--primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn--primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.btn--outline {
+    background: transparent;
+    border: 2px solid #e5e7eb;
+    color: #374151;
+}
+
+.btn--outline:hover {
+    background: #f9fafb;
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.btn--danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn--danger:hover {
+    background: #dc2626;
+}
+
+.btn--full {
+    width: 100%;
+    justify-content: center;
+}
+
+.btn--large {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+}
+
+.btn--pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
+
+/* Badge */
+.badge {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cart-page {
+        padding: 15px;
+    }
+    
+    .cart-header__content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .cart-header__title {
+        font-size: 2rem;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .item-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .quantity-controls {
+        order: -1;
+    }
+    
+    .total-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .total-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .total-title {
+        font-size: 1.3rem;
+    }
+    
+    .total-amount {
+        font-size: 1.8rem;
+    }
+}
+</style>
+
+<script>
+let currentEditItemId = null;
+let currentDeleteItemId = null;
+
+// Update quantity with AJAX
+function updateQuantity(itemId, change) {
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    const quantityInput = itemElement.querySelector('.quantity-input');
+    const currentQuantity = parseInt(quantityInput.value);
+    const newQuantity = Math.max(1, Math.min(10, currentQuantity + change));
+    
+    if (newQuantity !== currentQuantity) {
+        fetch(`/orders/panier/modifier/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: `quantite=${newQuantity}`
+        })
+        .then(response => {
+            if (response.ok) {
+                location.reload(); // Simple reload for now
+            } else {
+                showNotification('Erreur lors de la mise à jour', 'error');
+            }
+        })
+        .catch(error => {
+            showNotification('Erreur réseau', 'error');
+        });
+    }
+}
+
+// Edit item
+function editItem(itemId) {
+    currentEditItemId = itemId;
+    const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+    const quantity = itemElement.querySelector('.quantity-input').value;
+    const notesElement = itemElement.querySelector('.item-notes');
+    const notes = notesElement ? notesElement.textContent.trim() : '';
+    
+    document.getElementById('editQuantity').value = quantity;
+    document.getElementById('editNotes').value = notes;
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    currentEditItemId = null;
+}
+
+function changeQuantity(change) {
+    const input = document.getElementById('editQuantity');
+    const newValue = Math.max(1, Math.min(10, parseInt(input.value) + change));
+    input.value = newValue;
+}
+
+function saveEdit() {
+    const form = document.getElementById('editForm');
+    const formData = new FormData(form);
+    
+    fetch(`/orders/panier/modifier/${currentEditItemId}/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            closeEditModal();
+            location.reload();
+        } else {
+            showNotification('Erreur lors de la modification', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur réseau', 'error');
+    });
+}
+
+// Delete item
+function deleteItem(itemId) {
+    currentDeleteItemId = itemId;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    currentDeleteItemId = null;
+}
+
+function confirmDelete() {
+    fetch(`/orders/panier/supprimer/${currentDeleteItemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken()
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            closeDeleteModal();
+            location.reload();
+        } else {
+            showNotification('Erreur lors de la suppression', 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur réseau', 'error');
+    });
+}
+
+// Clear cart
+function clearCart() {
+    if (confirm('Êtes-vous sûr de vouloir vider votre panier ?')) {
+        // Implementation would depend on your backend
+        showNotification('Fonctionnalité à venir', 'info');
+    }
+}
+
+// Helper functions
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+function showNotification(message, type) {
+    // Simple notification implementation
+    const notification = document.createElement('div');
+    notification.className = `notification notification--${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    if (type === 'error') {
+        notification.style.background = '#ef4444';
+    } else if (type === 'success') {
+        notification.style.background = '#059669';
+    } else {
+        notification.style.background = '#3b82f6';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+        currentEditItemId = null;
+        currentDeleteItemId = null;
+    }
+}
+</script>
 {% endblock %}

@@ -11,26 +11,17 @@ class CategoriePlatForm(forms.ModelForm):
 class PlatForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['categorie'].widget = forms.TextInput(attrs={
+        self.fields['categorie'].widget = forms.Select(attrs={
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500',
-            'placeholder': 'Catégorie (ex: Poulet, Jus, ...)',
-            'list': 'categorie-list',
         })
+        self.fields['categorie'].empty_label = "Choisir une catégorie..."
+        self.fields['categorie'].queryset = CategoriePlat.objects.all().order_by('ordre', 'nom')
 
     def clean_categorie(self):
-        value = (self.cleaned_data.get('categorie') or '').strip()
-        if not value:
+        categorie = self.cleaned_data.get('categorie')
+        if not categorie:
             raise forms.ValidationError('Ce champ est obligatoire.')
-        return value
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if instance.categorie:
-            CategoriePlat.objects.get_or_create(nom=instance.categorie, defaults={'ordre': 0})
-        if commit:
-            instance.save()
-            self.save_m2m()
-        return instance
+        return categorie
 
     class Meta:
         model = Plat

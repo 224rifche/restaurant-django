@@ -23,7 +23,8 @@
     </div>
     {% endif %}
     <div class="btn-group">
-        <a href="{% url 'orders:view_cart' %}" class="btn btn--primary">🛒 Voir mon panier</a>
+        <button onclick="toggleCart()" class="btn btn--primary">🛒 Mon Panier (<span id="cart-count">0</span>)</button>
+        <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">📋 Mes Commandes</a>
     </div>
 </div>
 
@@ -44,12 +45,13 @@
 
 <!-- Grille des plats -->
 <div class="menu-grid">
+    {% csrf_token %}
     {% for plat in plats %}
     <div class="menu-item">
         {% if plat.image and plat.image.name != 'plats/default.jpg' %}
         <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" class="menu-item__image">
         {% else %}
-        <div class="menu-item__image" style="display: flex; align-items: center; justify-content: center; background: var(--bg-input); font-size: 48px;">
+        <div class="menu-item__image" style="display: flex; align-items: center; justify-content: center; background: rgba(59, 130, 246, 0.15); font-size: 48px;">
             🍽️
         </div>
         {% endif %}
@@ -62,11 +64,7 @@
             {% endif %}
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <span class="menu-item__price">{{ plat.prix_unitaire|gnf }}</span>
-                <form action="{% url 'orders:add_to_cart' plat.id %}" method="post" style="display: inline;">
-                    {% csrf_token %}
-                    <input type="hidden" name="quantite" value="1">
-                    <button type="submit" class="btn btn--primary btn--sm">🛒 Ajouter</button>
-                </form>
+                <button onclick="addToCart({{ plat.id }})" class="btn btn--primary btn--sm">🛒 Ajouter</button>
             </div>
         </div>
     </div>
@@ -78,4 +76,198 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Panier flottant -->
+<div id="cart-sidebar" class="cart-sidebar" style="display: none;">
+    <div class="cart-header">
+        <h3>🛒 Mon Panier</h3>
+        <button onclick="toggleCart()" class="btn btn--ghost">✖️</button>
+    </div>
+    <div id="cart-items" class="cart-items">
+        <!-- Les articles du panier seront chargés ici -->
+    </div>
+    <div class="cart-footer">
+        <div class="cart-total">
+            Total: <span id="cart-total">0 GNF</span>
+        </div>
+        <div class="cart-actions">
+            <a href="{% url 'orders:create_order' %}" class="btn btn--primary">✅ Valider la commande</a>
+            <a href="{% url 'orders:view_cart' %}" class="btn btn--ghost">Voir le panier</a>
+            <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">📋 Mes Commandes</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.cart-sidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 400px;
+    height: 100vh;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.cart-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.cart-total {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 16px;
+}
+
+.cart-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.cart-actions .btn {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .cart-sidebar {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+function toggleCart() {
+    const sidebar = document.getElementById('cart-sidebar');
+    sidebar.style.display = sidebar.style.display === 'none' ? 'flex' : 'none';
+    if (sidebar.style.display === 'flex') {
+        loadCart();
+    }
+}
+
+function addToCart(platId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/orders/panier/ajouter/${platId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'quantite=1'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour le compteur du panier
+            document.getElementById('cart-count').textContent = data.cart_count;
+            document.getElementById('cart-total').textContent = data.cart_total + ' GNF';
+            
+            // Afficher une notification
+            showNotification(data.message, 'success');
+            
+            // Recharger le panier s'il est ouvert
+            if (document.getElementById('cart-sidebar').style.display === 'flex') {
+                loadCart();
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showNotification('Erreur lors de l\'ajout au panier', 'error');
+    });
+}
+
+function loadCart() {
+    fetch('/orders/panier/')
+    .then(response => response.text())
+    .then(html => {
+        // Extraire les articles du panier du HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const cartItems = doc.querySelector('.activity-list');
+        
+        if (cartItems) {
+            document.getElementById('cart-items').innerHTML = cartItems.innerHTML;
+            
+            // Extraire et mettre à jour le total
+            const totalElement = doc.querySelector('span[style*="font-size: 32px"]');
+            if (totalElement) {
+                const totalText = totalElement.textContent.trim();
+                document.getElementById('cart-total').textContent = totalText;
+            }
+            
+            // Compter les articles et mettre à jour le compteur
+            const itemCount = cartItems.querySelectorAll('.activity-item').length;
+            document.getElementById('cart-count').textContent = itemCount;
+        } else {
+            document.getElementById('cart-items').innerHTML = '<p class="empty-state">Votre panier est vide</p>';
+            document.getElementById('cart-count').textContent = '0';
+            document.getElementById('cart-total').textContent = '0 GNF';
+        }
+    })
+    .catch(error => {
+        console.error('Erreur lors du chargement du panier:', error);
+        document.getElementById('cart-items').innerHTML = '<p class="empty-state">Erreur de chargement</p>';
+    });
+}
+
+function showNotification(message, type) {
+    // Créer une notification simple
+    const notification = document.createElement('div');
+    notification.className = `notification notification--${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 10000;
+        ${type === 'success' ? 'background: #10b981;' : 'background: #ef4444;'}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Supprimer après 3 secondes
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Charger le compteur du panier au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/orders/panier/')
+    .then(response => response.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const items = doc.querySelectorAll('.activity-item');
+        document.getElementById('cart-count').textContent = items.length;
+    })
+    .catch(error => {
+        document.getElementById('cart-count').textContent = '0';
+    });
+});
+</script>
 {% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load gnf %}
+
+{% block title %}Supprimer la commande{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Supprimer la commande</h1>
+        <p class="page-subtitle">Confirmez la suppression de cette commande</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__content">
+        <div class="alert alert--warning" style="margin-bottom: 24px;">
+            <div class="alert__icon">⚠️</div>
+            <div class="alert__content">
+                <strong>Attention :</strong> Cette action est irréversible. La commande sera définitivement supprimée.
+            </div>
+        </div>
+
+        <div class="order-summary" style="background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+            <h3 style="margin-bottom: 16px; color: var(--text-primary);">📋 Détails de la commande</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 14px;">Numéro</span>
+                    <div style="font-weight: 600; color: var(--text-primary);">{{ commande.numero_commande }}</div>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 14px;">Table</span>
+                    <div style="font-weight: 600; color: var(--text-primary);">Table {{ commande.table.numero_table }}</div>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 14px;">Statut</span>
+                    <div style="font-weight: 600; color: var(--text-primary);">
+                        <span class="badge badge--warning">{{ commande.get_statut_display }}</span>
+                    </div>
+                </div>
+                <div>
+                    <span style="color: var(--text-secondary); font-size: 14px;">Montant total</span>
+                    <div style="font-weight: 600; color: var(--text-primary);">{{ commande.montant_total|gnf }}</div>
+                </div>
+            </div>
+
+            <div>
+                <span style="color: var(--text-secondary); font-size: 14px;">Date</span>
+                <div style="font-weight: 600; color: var(--text-primary);">{{ commande.date_commande|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+
+        {% if commande.items.all %}
+        <div style="margin-bottom: 24px;">
+            <h4 style="margin-bottom: 12px; color: var(--text-primary);">🍽️ Articles concernés</h4>
+            <div class="activity-list">
+                {% for item in commande.items.all %}
+                <div class="activity-item">
+                    <div class="activity-item__content">
+                        <div class="activity-item__title">{{ item.plat.nom }}</div>
+                        <div class="activity-item__meta">
+                            Quantité: {{ item.quantite }} × {{ item.prix_unitaire|gnf }} = {{ item.sous_total|gnf }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" style="display: flex; gap: 12px; justify-content: flex-end;">
+            {% csrf_token %}
+            <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">❌ Annuler</a>
+            <button type="submit" class="btn btn--danger" style="background: #dc2626; color: white;">
+                🗑️ Confirmer la suppression
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.alert--warning {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.3);
+    color: #92400e;
+}
+
+.alert__icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.alert__content {
+    flex: 1;
+}
+
+.order-summary {
+    border: 1px solid var(--border-color);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge--warning {
+    background: rgba(251, 191, 36, 0.1);
+    color: #92400e;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.btn--danger:hover {
+    background: #b91c1c !important;
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

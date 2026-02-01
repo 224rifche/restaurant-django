@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from decouple import config
 from dotenv import load_dotenv
+load_dotenv('.env.local')
 load_dotenv()
 try:
     import dj_database_url
@@ -19,7 +20,7 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 15
 CACHE_MIDDLEWARE_KEY_PREFIX = 'restaurant'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = [
     h.strip()

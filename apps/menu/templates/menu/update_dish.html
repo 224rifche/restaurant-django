@@ -26,13 +26,6 @@
         <div class="form-group">
             <label class="form-label">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
             {{ field }}
-            {% if field.name == 'categorie' %}
-            <datalist id="categorie-list">
-                {% for cat in categories %}
-                <option value="{{ cat }}"></option>
-                {% endfor %}
-            </datalist>
-            {% endif %}
             {% if field.errors %}<span class="form-error">{{ field.errors.0 }}</span>{% endif %}
             {% if field.help_text %}<span class="form-hint">{{ field.help_text }}</span>{% endif %}
         </div>

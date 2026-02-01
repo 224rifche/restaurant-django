@@ -19,9 +19,11 @@ class CategoriePlat(models.Model):
 
 class Plat(models.Model):
     nom = models.CharField(max_length=200, verbose_name='Nom du plat')
-    categorie = models.CharField(
-        max_length=100,
-        default='Poulet',
+    categorie = models.ForeignKey(
+        CategoriePlat,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         verbose_name='Catégorie'
     )
     description = models.TextField(blank=True, verbose_name='Description')

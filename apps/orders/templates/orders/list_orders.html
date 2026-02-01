@@ -8,10 +8,16 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">📋 Commandes</h1>
+        {% if request.user.role == 'Rtable' %}
+        <p class="page-subtitle">Historique de vos commandes</p>
+        {% else %}
         <p class="page-subtitle">Gérez les commandes du restaurant</p>
+        {% endif %}
     </div>
     <div class="btn-group">
-        {% if request.user.role == 'Rservent' or request.user.role == 'Radmin' or request.user.role == 'Rcaissier' %}
+        {% if request.user.role == 'Rtable' %}
+        <a href="{% url 'menu:list_dishes' %}" class="btn btn--ghost">🔙 Retour au menu</a>
+        {% elif request.user.role == 'Rservent' or request.user.role == 'Radmin' or request.user.role == 'Rcaissier' %}
         <form method="post" action="{% url 'orders:start_table_order' %}" style="display:flex; gap: 10px; align-items: center;">
             {% csrf_token %}
             <select name="table_id" class="input" style="min-width: 160px;">
@@ -104,6 +110,7 @@
                 <a href="{% url 'orders:view_order' c.id %}" class="btn btn--sm btn--ghost">👁️ Voir</a>
                 {% if c.statut == 'en_attente' %}
                     <a href="{% url 'orders:mark_order_served' c.id %}" class="btn btn--sm btn--primary">🍽️ Servir</a>
+                    <a href="{% url 'orders:delete_order' c.id %}" class="btn btn--sm btn--danger" style="background: #dc2626; color: white;">🗑️ Supprimer</a>
                 {% elif c.statut == 'servie' %}
                     <a href="{% url 'orders:mark_order_paid' c.id %}" class="btn btn--sm btn--success">💳 Payer</a>
                 {% endif %}

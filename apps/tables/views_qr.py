@@ -34,35 +34,10 @@ def get_client_ip(request):
 
 
 class QRCodeLoginView(View):
-    """Vue pour la connexion via QR code"""
-    template_name = 'tables/qr_login.html'
+    """Vue pour la connexion automatique via QR code"""
     
     def get(self, request, token):
-        """Affiche la page de connexion via QR code"""
-        try:
-            table = TableRestaurant.objects.get(qr_token=token)
-        except TableRestaurant.DoesNotExist:
-            messages.error(request, "QR Code invalide ou expiré.")
-            return redirect('authentication:login')
-        
-        # Vérifier si la table est bloquée
-        if table.is_blocked():
-            messages.error(request, f"La table {table.numero_table} est actuellement bloquée.")
-            return redirect('authentication:login')
-        
-        # Vérifier si la table a un utilisateur associé
-        if not table.user:
-            messages.error(request, f"Aucun utilisateur n'est associé à la table {table.numero_table}.")
-            return redirect('authentication:login')
-        
-        context = {
-            'table': table,
-            'token': token,
-        }
-        return render(request, self.template_name, context)
-    
-    def post(self, request, token):
-        """Traite la connexion via QR code"""
+        """Connexion automatique et redirection vers la prise de commande"""
         try:
             table = TableRestaurant.objects.get(qr_token=token)
         except TableRestaurant.DoesNotExist:
@@ -86,13 +61,28 @@ class QRCodeLoginView(View):
         ip_address = get_client_ip(request)
         table.record_login(ip_address)
         
-        # Connecter l'utilisateur
+        # Connecter l'utilisateur automatiquement
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         
-        messages.success(request, f"Bienvenue ! Vous êtes connecté à la table {table.numero_table}.")
+        # Créer automatiquement un panier pour cette table s'il n'en existe pas
+        from apps.orders.models import Panier
+        existing_panier = Panier.objects.filter(table=table, is_active=True).first()
+        if not existing_panier:
+            Panier.objects.create(
+                table=table,
+                created_by=user,
+                is_active=True
+            )
         
-        # Rediriger vers la page de détails de la table
-        return redirect('tables:table_detail', table_id=table.id)
+        # Message de bienvenue
+        messages.success(request, f"Bienvenue à la table {table.numero_table} !")
+        
+        # Rediriger directement vers le menu pour prendre des commandes
+        return redirect('menu:list_dishes')
+    
+    def post(self, request, token):
+        """Pour compatibilité, mais GET est maintenant utilisé pour la connexion automatique"""
+        return self.get(request, token)
 
 
 @method_decorator(login_required, name='dispatch')
