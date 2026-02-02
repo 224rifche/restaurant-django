@@ -26,7 +26,7 @@ ALLOWED_HOSTS = [
     h.strip()
     for h in config(
         'ALLOWED_HOSTS',
-        default='localhost,127.0.0.1,restaurant-django-production.up.railway.app,.up.railway.app',
+        default='localhost,127.0.0.1,restaurant-django-production.up.railway.app,.up.railway.app,testserver',
     ).split(',') 
     if h.strip()
 ]
@@ -227,35 +227,27 @@ if not DEBUG:
     MIDDLEWARE = [
         'django.middleware.security.SecurityMiddleware',
         'whitenoise.middleware.WhiteNoiseMiddleware',
+        'restaurant_management.middleware.MediaMiddleware',  # Notre middleware personnalisé
         'django.middleware.cache.UpdateCacheMiddleware',
     ] + MIDDLEWARE[1:] + [
         'django.middleware.cache.FetchFromCacheMiddleware',
     ]
     
-    # Configuration WhiteNoise pour les médias en production
+    # Configuration WhiteNoise pour la production
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    WHITENOISE_MAX_AGE = 31536000
+    WHITENOISE_USE_FINDERS = True
+    
+    # Configuration des médias en production (si pas de S3)
     if not USE_S3:
-        # Ajouter les répertoires médias à WhiteNoise
+        WHITENOISE_ROOT = os.path.join(BASE_DIR, 'media')
         WHITENOISE_SKIP_REGULAR_MIME_TYPES = True
         WHITENOISE_INDEX_FILE = True
-        WHITENOISE_USE_FINDERS = True
-        WHITENOISE_MAX_AGE = 31536000
-        
-        # Configuration spécifique pour les médias
-        STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-        
-        # S'assurer que les médias sont servis
-        WHITENOISE_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     # Configuration développement
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_USE_FINDERS = True
-
-# Servir les fichiers médias avec WhiteNoise en production (si pas de S3)
-if not USE_S3:
-    WHITENOISE_ROOT = os.path.join(BASE_DIR, 'media')
-    WHITENOISE_SKIP_REGULAR_MIME_TYPES = True
-    WHITENOISE_INDEX_FILE = True
 
 # Configuration pour la compression des fichiers statiques
 COMPRESS_ENABLED = True
