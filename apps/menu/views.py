@@ -152,9 +152,23 @@ def update_category(request, category_id):
 @role_required(['Radmin'])
 def delete_category(request, category_id):
     category = get_object_or_404(CategoriePlat, id=category_id)
+    
+    # Vérifier si des plats sont associés à cette catégorie
+    plats_count = Plat.objects.filter(categorie=category).count()
+    
     if request.method == 'POST':
+        if plats_count > 0:
+            messages.error(request, f'Impossible de supprimer la catégorie "{category.nom}" car {plats_count} plat(s) y sont associés. Veuillez d\'abord déplacer ou supprimer ces plats.')
+            return redirect('menu:manage_categories')
+        
         nom = category.nom
         category.delete()
         messages.success(request, f'Catégorie "{nom}" supprimée avec succès.')
         return redirect('menu:manage_categories')
-    return render(request, 'menu/delete_category.html', {'category': category})
+    
+    context = {
+        'category': category,
+        'plats_count': plats_count,
+        'can_delete': plats_count == 0
+    }
+    return render(request, 'menu/delete_category.html', context)

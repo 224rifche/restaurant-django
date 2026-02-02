@@ -6,6 +6,12 @@ class CategoriePlatForm(forms.ModelForm):
     class Meta:
         model = CategoriePlat
         fields = ('nom', 'ordre')
+    
+    def clean_nom(self):
+        nom = self.cleaned_data.get('nom')
+        if CategoriePlat.objects.filter(nom__iexact=nom).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Une catégorie avec ce nom existe déjà.")
+        return nom
 
 
 class PlatForm(forms.ModelForm):

@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block title %}Diagnostic Médias{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🔍 Diagnostic Médias</h1>
+        <p class="page-subtitle">Vérification de la configuration des fichiers médias</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Configuration Django</h3>
+    </div>
+    <div class="card__content">
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>DEBUG:</strong> 
+                <span class="badge {% if debug %}badge--success{% else %}badge--warning{% endif %}">
+                    {{ debug }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>USE_S3:</strong> 
+                <span class="badge {% if not use_s3 %}badge--success{% else %}badge--info{% endif %}">
+                    {{ use_s3 }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>MEDIA_ROOT:</strong> 
+                <code>{{ media_root }}</code>
+            </div>
+            <div class="info-item">
+                <strong>MEDIA_URL:</strong> 
+                <code>{{ media_url }}</code>
+            </div>
+            <div class="info-item">
+                <strong>WHITENOISE_ROOT:</strong> 
+                <code>{{ whitenoise_root }}</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">État des dossiers</h3>
+    </div>
+    <div class="card__content">
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>MEDIA_ROOT existe:</strong> 
+                <span class="badge {% if media_root_exists %}badge--success{% else %}badge--danger{% endif %}">
+                    {{ media_root_exists|yesno:"Oui,Non" }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>MEDIA_ROOT lisible:</strong> 
+                <span class="badge {% if media_root_readable %}badge--success{% else %}badge--danger{% endif %}">
+                    {{ media_root_readable|yesno:"Oui,Non" }}
+                </span>
+            </div>
+        </div>
+        
+        {% if plats_files %}
+        <h4 style="margin-top: 20px;">Fichiers dans media/plats ({{ plats_files|length }} premiers):</h4>
+        <div class="file-list">
+            {% for file in plats_files %}
+            <div class="file-item">
+                <span class="file-icon">📄</span>
+                <span class="file-name">{{ file }}</span>
+                <a href="{{ media_url }}plats/{{ file }}" target="_blank" class="file-link">Voir</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Test des URLs d'images</h3>
+    </div>
+    <div class="card__content">
+        <a href="?test_urls=1" class="btn btn--primary">Tester les URLs des plats</a>
+        
+        {% if test_urls %}
+        <div style="margin-top: 20px;">
+            {% for item in test_urls %}
+            <div class="url-test">
+                <div class="url-info">
+                    <strong>{{ item.plat }}</strong><br>
+                    <small>Path: {{ item.image_path }}</small><br>
+                    <small>URL: {{ item.image_url }}</small>
+                </div>
+                <div class="url-preview">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.plat }}" style="max-width: 100px; max-height: 100px;" 
+                         onerror="this.style.border='2px solid red'; this.alt='Erreur de chargement';">
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Recommandations</h3>
+    </div>
+    <div class="card__content">
+        <div class="recommendations">
+            {% if not debug and not use_s3 %}
+            <div class="recommendation recommendation--success">
+                <span class="rec-icon">✅</span>
+                <div class="rec-content">
+                    <strong>Configuration production correcte</strong>
+                    <p>WhiteNoise devrait servir les fichiers médias.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if not media_root_exists %}
+            <div class="recommendation recommendation--danger">
+                <span class="rec-icon">❌</span>
+                <div class="rec-content">
+                    <strong>Le dossier MEDIA_ROOT n'existe pas</strong>
+                    <p>Créez le dossier: <code>mkdir -p {{ media_root }}</code></p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if not media_root_readable %}
+            <div class="recommendation recommendation--danger">
+                <span class="rec-icon">❌</span>
+                <div class="rec-content">
+                    <strong>Le dossier MEDIA_ROOT n'est pas lisible</strong>
+                    <p>Vérifiez les permissions du dossier.</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if debug %}
+            <div class="recommendation recommendation--info">
+                <span class="rec-icon">ℹ️</span>
+                <div class="rec-content">
+                    <strong>Mode développement</strong>
+                    <p>Les médias sont servis par Django. Passez DEBUG=False pour tester la production.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+
+.info-item {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.info-item code {
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.file-list {
+    margin-top: 12px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.file-icon {
+    font-size: 1.2rem;
+}
+
+.file-name {
+    flex: 1;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.file-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.url-test {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.url-info {
+    flex: 1;
+}
+
+.url-preview img {
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommendation {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+}
+
+.recommendation--success {
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+}
+
+.recommendation--danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.recommendation--info {
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+}
+
+.rec-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.rec-content {
+    flex: 1;
+}
+
+.rec-content strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.rec-content p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge--success {
+    background: #059669;
+    color: white;
+}
+
+.badge--danger {
+    background: #dc2626;
+    color: white;
+}
+
+.badge--warning {
+    background: #d97706;
+    color: white;
+}
+
+.badge--info {
+    background: #2563eb;
+    color: white;
+}
+</style>
+{% endblock %}

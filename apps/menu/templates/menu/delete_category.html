@@ -1,34 +1,112 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Supprimer {{ category.nom }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title">🗑️ Supprimer la catégorie</h1>
-        <p class="page-subtitle">{{ category.nom }}</p>
+        <h1 class="page-title">🗑️ Supprimer une catégorie</h1>
+        <p class="page-subtitle">Gestion des catégories de plats</p>
     </div>
     <div class="btn-group">
-        <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">← Retour</a>
+        <a href="{% url 'menu:manage_categories' %}" class="btn btn--ghost">← Retour aux catégories</a>
     </div>
 </div>
 
-<div class="card" style="max-width: 760px; margin: 0 auto;">
+<div class="card">
     <div class="card__header">
-        <h3 class="card__title">Confirmation</h3>
+        <h3 class="card__title">Confirmation de suppression</h3>
     </div>
 
     <div class="card__content">
-        <p>Es-tu sûr de vouloir supprimer la catégorie <strong>{{ category.nom }}</strong> ?</p>
+        {% if can_delete %}
+        <p>Êtes-vous sûr de vouloir supprimer la catégorie <strong>{{ category.nom }}</strong> ?</p>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Cette action est définitive.</p>
 
         <form method="post" class="form" style="margin-top: 16px;">
             {% csrf_token %}
-            <div class="btn-group" style="justify-content: flex-end;">
-                <a class="btn btn--ghost" href="{% url 'menu:manage_categories' %}">Annuler</a>
-                <button class="btn btn--danger" type="submit">🗑️ Supprimer</button>
+            <div class="btn-group">
+                <a href="{% url 'menu:manage_categories' %}" class="btn btn--outline">Annuler</a>
+                <button type="submit" class="btn btn--danger">🗑️ Supprimer définitivement</button>
             </div>
         </form>
+        {% else %}
+        <div class="alert alert--danger" style="margin-bottom: 20px;">
+            <span class="alert__icon">⚠️</span>
+            <div class="alert__content">
+                <strong>Impossible de supprimer cette catégorie</strong>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">
+                    {{ plats_count }} plat(s) sont actuellement associés à cette catégorie.
+                </p>
+            </div>
+        </div>
+
+        <p>Pour supprimer cette catégorie, vous devez d'abord :</p>
+        <ol style="margin: 15px 0; padding-left: 20px; line-height: 1.6;">
+            <li>Déplacer les {{ plats_count }} plat(s) vers une autre catégorie</li>
+            <li>Ou supprimer les {{ plats_count }} plat(s) associés</li>
+        </ol>
+
+        <div class="btn-group" style="margin-top: 20px;">
+            <a href="{% url 'menu:manage_categories' %}" class="btn btn--outline">← Retour aux catégories</a>
+            <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary">🍴 Gérer les plats</a>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+{% if not can_delete %}
+<div class="card" style="margin-top: 20px;">
+    <div class="card__header">
+        <h4 class="card__title">Plats concernés ({{ plats_count }})</h4>
+    </div>
+    <div class="card__content">
+        <div class="activity-list">
+            {% for plat in category.plat_set.all %}
+            <div class="activity-item">
+                <div class="activity-item__content">
+                    <strong>{{ plat.nom }}</strong>
+                    <span class="badge" style="margin-left: 10px;">{{ plat.prix_unitaire|gnf }}</span>
+                </div>
+                <div class="activity-item__actions">
+                    <a href="{% url 'menu:update_dish' plat.id %}" class="btn btn--sm btn--ghost">✏️ Modifier</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert--danger {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.alert__icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.alert__content {
+    flex: 1;
+}
+
+.alert__content strong {
+    display: block;
+    margin-bottom: 4px;
+}
+</style>
 {% endblock %}
