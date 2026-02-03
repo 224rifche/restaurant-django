@@ -83,9 +83,12 @@
                     <td>
                         <div class="btn-group">
                             <a class="btn btn--sm btn--ghost" href="{% url 'menu:update_dish' plat.id %}">✏️ Modifier</a>
-                            <a class="btn btn--sm {% if plat.disponible %}btn--warning{% else %}btn--success{% endif %}" href="{% url 'menu:toggle_dish_availability' plat.id %}">
-                                {% if plat.disponible %}🔒 Désactiver{% else %}🔓 Activer{% endif %}
-                            </a>
+                            <form method="post" action="{% url 'menu:toggle_dish_availability' plat.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn--sm {% if plat.disponible %}btn--warning{% else %}btn--success{% endif %}">
+                                    {% if plat.disponible %}🔒 Désactiver{% else %}🔓 Activer{% endif %}
+                                </button>
+                            </form>
                             {% if request.user.role == 'Radmin' %}
                             <a class="btn btn--sm btn--danger" href="{% url 'menu:delete_dish' plat.id %}">🗑️</a>
                             {% endif %}
