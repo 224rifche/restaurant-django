@@ -7,6 +7,16 @@ logger = logging.getLogger(__name__)
 class MediaStorage(S3Boto3Storage):
     location = 'media'
     file_overwrite = False
+    # Désactiver les vérifications HeadObject pour éviter les erreurs 403
+    querystring_auth = False
+    custom_domain = False
+    # Ne pas vérifier l'existence des fichiers avant de sauvegarder
+    file_overwrite = False
+    # Désactiver la validation de l'existence des fichiers
+    def get_valid_name(self, name):
+        return name
+    def get_available_name(self, name, max_length=None):
+        return name
     
     def save(self, name, content, max_length=None):
         try:

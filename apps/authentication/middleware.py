@@ -59,8 +59,11 @@ class RoleBasedAccessMiddleware:
         }
 
     def __call__(self, request):
+        # Normaliser le chemin pour gérer les slashes finaux
+        normalized_path = request.path.rstrip('/')
+        
         # Vérifier si l'URL est exemptée
-        if any(request.path.startswith(url) for url in self.exempt_urls):
+        if any(normalized_path.startswith(url.rstrip('/')) for url in self.exempt_urls):
             return self.get_response(request)
 
         # Gestion des utilisateurs non authentifiés
@@ -88,6 +91,9 @@ class RoleBasedAccessMiddleware:
         """Vérifie si l'utilisateur a la permission d'accéder à l'URL demandée"""
         user_role = request.user.role if hasattr(request.user, 'role') else None
         
+        # Normaliser le chemin pour la vérification
+        normalized_path = request.path.rstrip('/')
+        
         # L'administrateur a accès à tout
         if user_role == 'Radmin':
             return True
@@ -99,7 +105,7 @@ class RoleBasedAccessMiddleware:
         for url_pattern in allowed_urls:
             if url_pattern == '*':
                 return True
-            if request.path.startswith(url_pattern):
+            if normalized_path.startswith(url_pattern.rstrip('/')):
                 return True
                 
         return False
@@ -107,12 +113,14 @@ class RoleBasedAccessMiddleware:
     def get_required_roles(self, request):
         """Retourne les rôles requis pour accéder à l'URL demandée"""
         required_roles = []
+        normalized_path = request.path.rstrip('/')
+        
         for role, urls in self.role_allowed_urls.items():
             for url_pattern in urls:
-                if url_pattern == '*' and request.path.startswith('/'):
+                if url_pattern == '*' and normalized_path.startswith('/'):
                     required_roles.append(role)
                     break
-                if request.path.startswith(url_pattern):
+                if normalized_path.startswith(url_pattern.rstrip('/')):
                     required_roles.append(role)
                     break
         return required_roles if required_roles else ['Aucun rôle spécifique']

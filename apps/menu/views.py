@@ -1,3 +1,5 @@
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from apps.authentication.decorators import role_required
@@ -80,11 +82,14 @@ def update_dish(request, dish_id):
     return render(request, 'menu/update_dish.html', {'form': form, 'plat': plat, 'categories': categories})
 
 
+@require_http_methods(["POST"])
 @role_required(['Rcuisinier', 'Radmin'])
 def toggle_dish_availability(request, dish_id):
     plat = get_object_or_404(Plat, id=dish_id)
     plat.disponible = not plat.disponible
-    plat.save()
+    
+    # Utiliser update_fields pour éviter les appels S3 inutiles sur l'image
+    plat.save(update_fields=['disponible', 'updated_at'])
     
     status = 'activé' if plat.disponible else 'désactivé'
     messages.success(request, f'Plat "{plat.nom}" {status} avec succès.')

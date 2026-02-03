@@ -62,5 +62,30 @@ class Command(BaseCommand):
     def clear_sessions(self):
         """Vide le cache des sessions"""
         from django.contrib.sessions.models import Session
-        Session.objects.all().delete()
-        self.stdout.write(self.style.SUCCESS('Sessions vidées avec succès'))
+        from django.conf import settings
+        
+        # Vérifier si le backend de sessions utilise la base de données
+        session_engine = getattr(settings, 'SESSION_ENGINE', 'django.contrib.sessions.backends.db')
+        
+        if 'db' in session_engine:
+            try:
+                Session.objects.all().delete()
+                self.stdout.write(self.style.SUCCESS('Sessions (base de données) vidées avec succès'))
+            except Exception as e:
+                self.stderr.write(
+                    self.style.ERROR(f'Erreur lors du vidage des sessions: {str(e)}')
+                )
+        elif 'cache' in session_engine or 'redis' in session_engine:
+            # Pour les sessions basées sur cache/Redis, vider le cache des sessions
+            try:
+                if 'sessions' in settings.CACHES:
+                    caches['sessions'].clear()
+                    self.stdout.write(self.style.SUCCESS('Sessions (cache/Redis) vidées avec succès'))
+                else:
+                    self.stdout.write(self.style.WARNING('Backend de sessions cache/Redis détecté mais pas de cache "sessions" configuré'))
+            except Exception as e:
+                self.stderr.write(
+                    self.style.ERROR(f'Erreur lors du vidage des sessions cache/Redis: {str(e)}')
+                )
+        else:
+            self.stdout.write(self.style.WARNING(f'Backend de sessions non supporté: {session_engine}'))

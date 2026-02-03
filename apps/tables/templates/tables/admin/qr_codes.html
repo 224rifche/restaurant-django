@@ -150,9 +150,30 @@
 
 {% block extrajs %}
 <script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function toggleTableStatus(tableId) {
     const url = `/tables/admin/tables/${tableId}/toggle-status/`;
-    const csrftoken = document.getElementById('js-csrf-token')?.value || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    const csrftoken = getCookie('csrftoken');
+    
+    if (!csrftoken) {
+        console.error('CSRF token not found');
+        alert('Erreur de sécurité: token CSRF manquant. Veuillez recharger la page.');
+        return;
+    }
     
     fetch(url, {
         method: 'POST',
