@@ -10,7 +10,7 @@
         <p class="page-subtitle">Historique de toutes les dépenses</p>
     </div>
     <div class="btn-group">
-        <a href="{% url 'expenses:create_depense' %}" class="btn btn--primary">+ Nouvelle dépense</a>
+        <a href="{% url 'payments:creer_sortie' %}" class="btn btn--primary">+ Nouvelle dépense</a>
         <a href="{% url 'payments:dashboard_caisse' %}" class="btn btn--ghost">← Retour</a>
     </div>
 </div>
@@ -50,7 +50,7 @@
     <div class="empty-state">
         <div class="empty-state__icon">📤</div>
         <p class="empty-state__title">Aucune sortie</p>
-        <a href="{% url 'expenses:create_depense' %}" class="btn btn--primary">+ Ajouter une dépense</a>
+        <a href="{% url 'payments:creer_sortie' %}" class="btn btn--primary">+ Ajouter une dépense</a>
     </div>
     {% endif %}
 </div>

@@ -117,7 +117,7 @@
                 <div class="quick-action__icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">🪑</div>
                 <span class="quick-action__label">Gérer les tables</span>
             </a>
-            <a href="{% url 'expenses:create_depense' %}" class="quick-action">
+            <a href="{% url 'payments:creer_sortie' %}" class="quick-action">
                 <div class="quick-action__icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">📤</div>
                 <span class="quick-action__label">Nouvelle dépense</span>
             </a>
@@ -225,7 +225,7 @@
     <div class="card">
         <div class="card__header">
             <h3 class="card__title">Dernières dépenses</h3>
-            <a href="{% url 'expenses:create_depense' %}" class="btn btn--sm btn--ghost">+ Ajouter</a>
+            <a href="{% url 'payments:creer_sortie' %}" class="btn btn--sm btn--ghost">+ Ajouter</a>
         </div>
         <div class="activity-list">
             {% for depense in dernieres_depenses %}

@@ -67,7 +67,7 @@
                     <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path and 'caisses' not in request.path %}active{% endif %}">
                         <span>💰</span> Caisse
                     </a>
-                    <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
+                    <a href="{% url 'payments:creer_sortie' %}" class="sidebar__link {% if 'sorties' in request.path %}active{% endif %}">
                         <span>📤</span> Dépenses
                     </a>
                 </div>
@@ -101,7 +101,7 @@
                 <a href="{% url 'payments:liste_paiements' %}" class="sidebar__link">
                     <span>💳</span> Paiements
                 </a>
-                <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
+                <a href="{% url 'payments:creer_sortie' %}" class="sidebar__link {% if 'sorties' in request.path %}active{% endif %}">
                     <span>📤</span> Dépenses
                 </a>
             {% endif %}

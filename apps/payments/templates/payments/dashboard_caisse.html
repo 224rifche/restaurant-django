@@ -26,7 +26,7 @@
         <a href="{% url 'payments:liste_sorties' %}" class="btn btn--ghost btn--sm">📤 Sorties</a>
         <a href="{% url 'payments:liste_paiements' %}" class="btn btn--ghost btn--sm">💳 Paiements</a>
         <a href="{% url 'payments:liste_types_depense' %}" class="btn btn--ghost btn--sm">🏷️ Types dépense</a>
-        <a href="{% url 'expenses:create_depense' %}" class="btn btn--warning btn--sm">+ Nouvelle dépense</a>
+        <a href="{% url 'payments:creer_sortie' %}" class="btn btn--warning btn--sm">+ Nouvelle dépense</a>
     </div>
 </div>
 
@@ -133,7 +133,7 @@
             <div class="quick-action__icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">📋</div>
             <span class="quick-action__label">Voir les détails</span>
         </a>
-        <a href="{% url 'expenses:create_depense' %}" class="quick-action">
+        <a href="{% url 'payments:creer_sortie' %}" class="quick-action">
             <div class="quick-action__icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">📤</div>
             <span class="quick-action__label">Nouvelle dépense</span>
         </a>

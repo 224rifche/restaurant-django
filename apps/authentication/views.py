@@ -175,7 +175,6 @@ def delete_user(request, user_id):
                 try:
                     with transaction.atomic():
                         from apps.payments.models import Caisse, Paiement, SortieCaisse
-                        from apps.expenses.models import Depense
                         from apps.tables.models import TableRestaurant
 
                         # Mettre à jour les références dans les autres modèles
@@ -183,7 +182,6 @@ def delete_user(request, user_id):
                         Caisse.objects.filter(utilisateur_fermeture=user).update(utilisateur_fermeture=system_user)
                         Paiement.objects.filter(utilisateur=user).update(utilisateur=system_user)
                         SortieCaisse.objects.filter(utilisateur=user).update(utilisateur=system_user)
-                        Depense.objects.filter(utilisateur=user).update(utilisateur=system_user)
                         
                         # Mettre à jour les références dans les tables
                         # D'abord récupérer toutes les tables liées à l'utilisateur

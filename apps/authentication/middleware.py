@@ -26,7 +26,7 @@ class RoleBasedAccessMiddleware:
             'Rcomptable': [
                 '/dashboard/',      # Tableau de bord
                 '/payments/',       # Consultation paiements et caisse
-                '/expenses/',       # Enregistrement des dépenses
+                '/payments/sorties/',  # Enregistrement des dépenses
             ],
             'Rcaissier': [
                 '/orders/',         # Commandes (encaissement)

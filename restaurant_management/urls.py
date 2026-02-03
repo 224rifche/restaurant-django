@@ -15,7 +15,6 @@ urlpatterns = [
     path('menu/', include('apps.menu.urls')),
     path('orders/', include('apps.orders.urls')),
     path('payments/', include('apps.payments.urls')),
-    path('expenses/', include('apps.expenses.urls')),
     path('dashboard/', include('apps.dashboard.urls')),
     
     # Diagnostic des médias (uniquement en développement)

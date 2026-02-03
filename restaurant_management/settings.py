@@ -60,45 +60,43 @@ INSTALLED_APPS = [
     'apps.menu',
     'apps.orders',
     'apps.payments',
-    'apps.expenses',
     'apps.core',
     'apps.dashboard',
     'storages',
    
 ]
 
-# Configuration S3
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'mon-restaurant-media-2026')
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-# Remove ACL settings as they're not supported by the bucket
-AWS_QUERYSTRING_AUTH = False
-AWS_S3_REGION_NAME = 'eu-west-3'  # Override any incorrect environment variable
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-AWS_LOCATION = 'media'
-# Disable ACLs and use bucket policy for access control
-AWS_DEFAULT_ACL = None
+# ===== AWS S3 CONFIG =====
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = 'eu-west-3'
+
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_SIGNATURE_VERSION = 's3v4'
 
-# Stockage des médias
-USE_S3 = config('USE_S3', default=False, cast=bool)
-HAS_S3_CREDS = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME)
+# Détection intelligente
+USE_S3 = config('USE_S3', default=not DEBUG, cast=bool)  # Auto: S3 en prod, local en dev
+HAS_S3_CREDS = all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME])
 
-# Forcer l'utilisation du stockage local en développement
-if DEBUG:
-    USE_S3 = False
-
+# Application conditionnelle
 if USE_S3 and HAS_S3_CREDS:
-    DEFAULT_FILE_STORAGE = 'restaurant_management.storage_backend.MediaStorage'
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    print("✅ Utilisation de S3 pour les médias")
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'
+    print("⚠️ Utilisation du stockage local (S3 désactivé)")
+
+# ===== STATIC FILES =====
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Configuration de logging pour les erreurs S3
 LOGGING = {
