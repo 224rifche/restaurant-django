@@ -66,11 +66,16 @@ INSTALLED_APPS = [
    
 ]
 
-# ===== AWS S3 CONFIG =====
+# ===== AWS S3 CONFIG ROBUSTE =====
+import logging
+from django.core.exceptions import ImproperlyConfigured
+
+logger = logging.getLogger(__name__)
+
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_REGION_NAME = 'eu-west-3'
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "mon-restaurant-media-2026")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eu-west-3")
 
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 AWS_S3_FILE_OVERWRITE = False
@@ -78,20 +83,42 @@ AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 
-# Détection intelligente
-USE_S3 = config('USE_S3', default=not DEBUG, cast=bool)  # Auto: S3 en prod, local en dev
-HAS_S3_CREDS = all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME])
+# Vérification stricte des credentials
+HAS_S3_CREDS = all([
+    AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY,
+    AWS_STORAGE_BUCKET_NAME,
+    len(AWS_ACCESS_KEY_ID or "") > 10,  # Validation basique
+    len(AWS_SECRET_ACCESS_KEY or "") > 20
+])
 
-# Application conditionnelle
+# Stratégie de stockage
+USE_S3 = config('USE_S3', default=not DEBUG, cast=bool)
+
+# PROTECTION : En production, S3 est OBLIGATOIRE
+if not DEBUG and not HAS_S3_CREDS:
+    logger.critical("🚨 ERREUR CRITIQUE : Credentials S3 manquants en PRODUCTION !")
+    logger.critical("Variables requises : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME")
+    raise ImproperlyConfigured(
+        "⚠️ PRODUCTION : AWS S3 credentials manquants !\n"
+        "Variables requises : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME\n"
+        "Configurez ces variables dans votre dashboard d'hébergement (Render/Railway/Heroku)"
+    )
+
+# Application de la config
 if USE_S3 and HAS_S3_CREDS:
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-    print("✅ Utilisation de S3 pour les médias")
+    try:
+        DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+        logger.info(f"✅ S3 activé : {AWS_STORAGE_BUCKET_NAME} ({AWS_S3_REGION_NAME})")
+    except Exception as e:
+        logger.error(f"❌ Erreur configuration S3 : {e}")
+        raise
 else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'
-    print("⚠️ Utilisation du stockage local (S3 désactivé)")
+    logger.warning("⚠️ Stockage local activé (développement uniquement)")
 
 # ===== STATIC FILES =====
 STATIC_URL = '/static/'
