@@ -74,7 +74,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 }
 # Remove ACL settings as they're not supported by the bucket
 AWS_QUERYSTRING_AUTH = False
-AWS_S3_REGION_NAME = 'eu-west-3'
+AWS_S3_REGION_NAME = 'eu-west-3'  # Override any incorrect environment variable
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_LOCATION = 'media'
 # Disable ACLs and use bucket policy for access control
@@ -295,3 +295,23 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@restaurant.com')
+
+
+# ===== AWS S3 CONFIG =====
+
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
+
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+
+AWS_QUERYSTRING_AUTH = False
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
