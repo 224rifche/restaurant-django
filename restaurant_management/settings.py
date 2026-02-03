@@ -85,6 +85,10 @@ AWS_S3_FILE_OVERWRITE = False
 USE_S3 = config('USE_S3', default=False, cast=bool)
 HAS_S3_CREDS = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME)
 
+# Forcer l'utilisation du stockage local en développement
+if DEBUG:
+    USE_S3 = False
+
 if USE_S3 and HAS_S3_CREDS:
     DEFAULT_FILE_STORAGE = 'restaurant_management.storage_backend.MediaStorage'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
@@ -92,6 +96,35 @@ else:
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'
+
+# Configuration de logging pour les erreurs S3
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'django_s3_errors.log',
+        },
+        'console': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'restaurant_management.storage_backend': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+        'apps.menu': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 CACHES = {
     'default': {

@@ -3,6 +3,9 @@ from django.contrib import messages
 from apps.authentication.decorators import role_required
 from django.db.models import Q
 from .models import Plat, CategoriePlat
+import logging
+
+logger = logging.getLogger(__name__)
 from .forms import PlatForm, CategoriePlatForm
 
 
@@ -37,10 +40,16 @@ def create_dish(request):
     if request.method == 'POST':
         form = PlatForm(request.POST, request.FILES)
         if form.is_valid():
-            plat = form.save()
-            plat.save()
-            messages.success(request, f'Plat "{plat.nom}" créé avec succès.')
-            return redirect('menu:manage_dishes')
+            try:
+                plat = form.save()
+                plat.save()
+                messages.success(request, f'Plat "{plat.nom}" créé avec succès.')
+                return redirect('menu:manage_dishes')
+            except Exception as e:
+                messages.error(request, f'Erreur lors de la création du plat: {str(e)}')
+                logger.error(f"Erreur création plat: {e}")
+        else:
+            messages.error(request, 'Le formulaire contient des erreurs.')
     else:
         form = PlatForm()
 
@@ -55,9 +64,15 @@ def update_dish(request, dish_id):
     if request.method == 'POST':
         form = PlatForm(request.POST, request.FILES, instance=plat)
         if form.is_valid():
-            form.save()
-            messages.success(request, f'Plat "{plat.nom}" modifié avec succès.')
-            return redirect('menu:manage_dishes')
+            try:
+                form.save()
+                messages.success(request, f'Plat "{plat.nom}" modifié avec succès.')
+                return redirect('menu:manage_dishes')
+            except Exception as e:
+                messages.error(request, f'Erreur lors de la modification du plat: {str(e)}')
+                logger.error(f"Erreur modification plat {dish_id}: {e}")
+        else:
+            messages.error(request, 'Le formulaire contient des erreurs.')
     else:
         form = PlatForm(instance=plat)
 
@@ -161,9 +176,13 @@ def delete_category(request, category_id):
             messages.error(request, f'Impossible de supprimer la catégorie "{category.nom}" car {plats_count} plat(s) y sont associés. Veuillez d\'abord déplacer ou supprimer ces plats.')
             return redirect('menu:manage_categories')
         
-        nom = category.nom
-        category.delete()
-        messages.success(request, f'Catégorie "{nom}" supprimée avec succès.')
+        try:
+            nom = category.nom
+            category.delete()
+            messages.success(request, f'Catégorie "{nom}" supprimée avec succès.')
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression de la catégorie: {str(e)}')
+            logger.error(f"Erreur suppression catégorie {category_id}: {e}")
         return redirect('menu:manage_categories')
     
     context = {
