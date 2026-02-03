@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiements{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">💳 Liste des Paiements</h1>
+        <p class="page-subtitle">Historique de tous les paiements encaissés</p>
+    </div>
+    <a href="{% url 'payments:dashboard_caisse' %}" class="btn btn--ghost">← Retour caisse</a>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Paiements</h3>
+        <span class="badge badge--success">{{ paiements|length }} paiement{{ paiements|length|pluralize }}</span>
+    </div>
+    
+    {% if paiements %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Commande</th>
+                    <th>Montant</th>
+                    <th>Mode</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in paiements %}
+                <tr>
+                    <td><strong style="color: var(--accent-primary);">{{ p.commande.numero_commande }}</strong></td>
+                    <td><span class="badge badge--success">+{{ p.montant }}€</span></td>
+                    <td>
+                        <span class="badge badge--neutral">
+                            {% if p.mode_paiement == 'especes' %}💵{% elif p.mode_paiement == 'carte' %}💳{% else %}📝{% endif %}
+                            {{ p.get_mode_paiement_display }}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-secondary);">{{ p.date_paiement|date:"d/m/Y H:i" }}</td>
+                    <td><a class="btn btn--sm btn--ghost" href="{% url 'payments:detail_paiement' p.id %}">👁️ Détails</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">💳</div>
+        <p class="empty-state__title">Aucun paiement</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

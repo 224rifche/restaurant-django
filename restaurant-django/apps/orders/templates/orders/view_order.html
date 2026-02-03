@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Commande {{ commande.numero_commande }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Commande {{ commande.numero_commande }}</h1>
+        <p class="page-subtitle">Table {{ commande.table.numero_table }}</p>
+    </div>
+    <div class="btn-group">
+        {% if commande.statut == 'en_attente' %}
+        <a href="{% url 'orders:mark_order_served' commande.id %}" class="btn btn--primary">🍽️ Marquer servie</a>
+        {% elif commande.statut == 'servie' %}
+        <a href="{% url 'orders:mark_order_paid' commande.id %}" class="btn btn--success">💳 Encaisser</a>
+        {% endif %}
+        <a href="{% url 'orders:list_orders' %}" class="btn btn--ghost">← Retour</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">🪑</div>
+        <div class="stat-card__value">{{ commande.table.numero_table }}</div>
+        <div class="stat-card__label">Table</div>
+    </div>
+    <div class="stat-card {% if commande.statut == 'en_attente' %}stat-card--warning{% elif commande.statut == 'servie' %}stat-card--info{% else %}stat-card--success{% endif %}">
+        <div class="stat-card__icon">{% if commande.statut == 'en_attente' %}⏳{% elif commande.statut == 'servie' %}🍽️{% else %}✅{% endif %}</div>
+        <div class="stat-card__value">{{ commande.get_statut_display }}</div>
+        <div class="stat-card__label">Statut</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value">{{ commande.montant_total }}€</div>
+        <div class="stat-card__label">Montant total</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">📅</div>
+        <div class="stat-card__value">{{ commande.date_commande|date:"H:i" }}</div>
+        <div class="stat-card__label">{{ commande.date_commande|date:"d/m/Y" }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">🍴 Détail de la commande</h3>
+        <span class="badge badge--neutral">{{ items|length }} article{{ items|length|pluralize }}</span>
+    </div>
+    
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Plat</th>
+                    <th>Prix unitaire</th>
+                    <th>Quantité</th>
+                    <th>Sous-total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in items %}
+                <tr>
+                    <td><strong>{{ it.plat.nom }}</strong></td>
+                    <td>{{ it.prix_unitaire }}€</td>
+                    <td><span class="badge badge--neutral">× {{ it.quantite }}</span></td>
+                    <td><strong style="color: var(--accent-primary);">{{ it.sous_total }}€</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">Aucun article</td></tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: var(--bg-input);">
+                    <td colspan="3" style="text-align: right; font-weight: 600;">Total</td>
+                    <td><strong style="font-size: 18px; color: var(--accent-success);">{{ commande.montant_total }}€</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

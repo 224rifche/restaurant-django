@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Détails caisse{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Détails de la Caisse</h1>
+        <p class="page-subtitle">Session du {{ caisse.date_ouverture|date:"d/m/Y" }}</p>
+    </div>
+    <a href="{% url 'payments:liste_caisses' %}" class="btn btn--ghost">← Retour</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card {% if caisse.est_ouverte %}stat-card--success{% else %}stat-card--neutral{% endif %}">
+        <div class="stat-card__icon">{% if caisse.est_ouverte %}🟢{% else %}🔒{% endif %}</div>
+        <div class="stat-card__value">{% if caisse.est_ouverte %}Ouverte{% else %}Fermée{% endif %}</div>
+        <div class="stat-card__label">Statut</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">💵</div>
+        <div class="stat-card__value">{{ caisse.solde_initial }}€</div>
+        <div class="stat-card__label">Solde initial</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">💰</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel }}€</div>
+        <div class="stat-card__label">Solde actuel</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">📅</div>
+        <div class="stat-card__value">{{ caisse.date_ouverture|date:"H:i" }}</div>
+        <div class="stat-card__label">{{ caisse.date_ouverture|date:"d/m/Y" }}</div>
+    </div>
+</div>
+
+<div class="grid grid--2">
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">💳 Paiements</h3>
+            <span class="badge badge--success">{{ paiements|length }}</span>
+        </div>
+        {% if paiements %}
+        <div class="activity-list">
+            {% for p in paiements %}
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(16, 185, 129, 0.15);">💳</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ p.commande.numero_commande }}</div>
+                    <div class="activity-item__time">{{ p.date_paiement|date:"H:i" }} • {{ p.get_mode_paiement_display }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--positive">+{{ p.montant }}€</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><p>Aucun paiement</p></div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">📤 Sorties</h3>
+            <span class="badge badge--danger">{{ sorties|length }}</span>
+        </div>
+        {% if sorties %}
+        <div class="activity-list">
+            {% for s in sorties %}
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(239, 68, 68, 0.15);">📤</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ s.type_depense.nom }}</div>
+                    <div class="activity-item__time">{{ s.date_sortie|date:"H:i" }} • {{ s.motif|truncatechars:20 }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--negative">-{{ s.montant }}€</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><p>Aucune sortie</p></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Commander{% endblock %}
+
+{% block content %}
+<h1 class="h1">Passer la commande</h1>
+
+<div class="card">
+    <div style="margin-bottom:12px;">Total: <span class="badge">{{ total }}</span></div>
+    <form method="post" class="form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {{ form.as_p }}
+        <div class="actions">
+            <button class="btn btn--primary" type="submit">Confirmer</button>
+            <a class="btn" href="{% url 'orders:view_cart' %}">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Types de dépense{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🏷️ Types de Dépense</h1>
+        <p class="page-subtitle">Catégories pour classifier les dépenses</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'payments:creer_type_depense' %}" class="btn btn--primary">+ Nouveau type</a>
+        <a href="{% url 'payments:dashboard_caisse' %}" class="btn btn--ghost">← Retour</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Catégories disponibles</h3>
+        <span class="badge badge--neutral">{{ types_depense|length }} type{{ types_depense|length|pluralize }}</span>
+    </div>
+    
+    {% if types_depense %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in types_depense %}
+                <tr>
+                    <td><strong>{{ t.nom }}</strong></td>
+                    <td style="color: var(--text-secondary);">{{ t.description|default:'Aucune description' }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'payments:modifier_type_depense' t.id %}">✏️ Modifier</a>
+                            <a class="btn btn--sm btn--danger" href="{% url 'payments:supprimer_type_depense' t.id %}">🗑️</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">🏷️</div>
+        <p class="empty-state__title">Aucun type de dépense</p>
+        <a href="{% url 'payments:creer_type_depense' %}" class="btn btn--primary">+ Créer un type</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

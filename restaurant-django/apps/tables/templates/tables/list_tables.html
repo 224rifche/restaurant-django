@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Tables{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🪑 Gestion des Tables</h1>
+        <p class="page-subtitle">Vue d'ensemble de toutes les tables du restaurant</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'tables:create_table' %}" class="btn btn--primary">+ Nouvelle table</a>
+    </div>
+</div>
+
+<!-- Stats rapides -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">✅</div>
+        <div class="stat-card__value">{{ tables|length }}</div>
+        <div class="stat-card__label">Total tables</div>
+    </div>
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">🟢</div>
+        <div class="stat-card__value" id="tables-libres">-</div>
+        <div class="stat-card__label">Tables libres</div>
+    </div>
+    <div class="stat-card stat-card--warning">
+        <div class="stat-card__icon">⏳</div>
+        <div class="stat-card__value" id="tables-occupees">-</div>
+        <div class="stat-card__label">Tables occupées</div>
+    </div>
+</div>
+
+<!-- Grille des tables -->
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Plan des tables</h3>
+    </div>
+    <div class="tables-grid">
+        {% for t in tables %}
+        <a href="{% url 'tables:table_detail' t.id %}" class="table-card table-card--{{ t.current_status }}">
+            <div class="table-card__number">{{ t.numero_table }}</div>
+            <div class="table-card__seats">{{ t.nombre_places }} places</div>
+            <span class="badge {% if t.current_status == 'libre' %}badge--success{% elif t.current_status == 'en_attente' %}badge--warning{% elif t.current_status == 'servie' %}badge--info{% else %}badge--neutral{% endif %}">
+                {{ t.get_current_status_display }}
+            </span>
+        </a>
+        {% empty %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state__icon">🪑</div>
+            <p class="empty-state__title">Aucune table</p>
+            <p class="empty-state__description">Créez votre première table pour commencer</p>
+            <a href="{% url 'tables:create_table' %}" class="btn btn--primary">+ Créer une table</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Liste détaillée -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">📋 Liste détaillée</h3>
+    </div>
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Numéro</th>
+                    <th>Places</th>
+                    <th>Utilisateur</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tables %}
+                <tr>
+                    <td><strong>{{ t.numero_table }}</strong></td>
+                    <td><span class="badge badge--neutral">{{ t.nombre_places }} places</span></td>
+                    <td>
+                        {% if t.user %}
+                            <span class="badge badge--primary">{{ t.user.login }}</span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">Non assigné</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {% if t.current_status == 'libre' %}badge--success{% elif t.current_status == 'en_attente' %}badge--warning{% elif t.current_status == 'servie' %}badge--info{% else %}badge--neutral{% endif %}">
+                            {{ t.get_current_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'tables:table_detail' t.id %}">👁️ Voir</a>
+                            <a class="btn btn--sm btn--ghost" href="{% url 'tables:update_table' t.id %}">✏️ Modifier</a>
+                            <a class="btn btn--sm btn--danger" href="{% url 'tables:delete_table' t.id %}">🗑️</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">Aucune table enregistrée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tables = document.querySelectorAll('.table-card');
+    let libres = 0, occupees = 0;
+    tables.forEach(t => {
+        if (t.classList.contains('table-card--libre')) libres++;
+        else occupees++;
+    });
+    document.getElementById('tables-libres').textContent = libres;
+    document.getElementById('tables-occupees').textContent = occupees;
+});
+</script>
+{% endblock %}

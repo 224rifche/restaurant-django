@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🍴 Notre Menu</h1>
+        <p class="page-subtitle">Découvrez nos délicieux plats</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'orders:view_cart' %}" class="btn btn--primary">🛒 Voir mon panier</a>
+    </div>
+</div>
+
+<!-- Grille des plats -->
+<div class="menu-grid">
+    {% for plat in plats %}
+    <div class="menu-item">
+        {% if plat.image %}
+        <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" class="menu-item__image">
+        {% else %}
+        <div class="menu-item__image" style="display: flex; align-items: center; justify-content: center; background: var(--bg-input); font-size: 48px;">
+            🍽️
+        </div>
+        {% endif %}
+        <div class="menu-item__content">
+            <h3 class="menu-item__name">{{ plat.nom }}</h3>
+            {% if plat.description %}
+            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 12px;">
+                {{ plat.description|truncatechars:80 }}
+            </p>
+            {% endif %}
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span class="menu-item__price">{{ plat.prix_unitaire }}€</span>
+                <a href="{% url 'orders:add_to_cart' plat.id %}" class="btn btn--primary btn--sm">
+                    🛒 Ajouter
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-state__icon">🍽️</div>
+        <h3 class="empty-state__title">Aucun plat disponible</h3>
+        <p class="empty-state__description">Le menu sera bientôt disponible</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

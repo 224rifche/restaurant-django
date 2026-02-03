@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}Gérer le menu{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🍴 Gestion du Menu</h1>
+        <p class="page-subtitle">Ajoutez, modifiez et gérez vos plats</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'menu:create_dish' %}" class="btn btn--primary">+ Nouveau plat</a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">🍽️</div>
+        <div class="stat-card__value">{{ plats|length }}</div>
+        <div class="stat-card__label">Total plats</div>
+    </div>
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">✅</div>
+        <div class="stat-card__value" id="plats-dispo">-</div>
+        <div class="stat-card__label">Disponibles</div>
+    </div>
+    <div class="stat-card stat-card--danger">
+        <div class="stat-card__icon">❌</div>
+        <div class="stat-card__value" id="plats-indispo">-</div>
+        <div class="stat-card__label">Indisponibles</div>
+    </div>
+</div>
+
+<!-- Liste des plats -->
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">📋 Liste des plats</h3>
+    </div>
+    
+    {% if plats %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Plat</th>
+                    <th>Prix</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plat in plats %}
+                <tr class="{% if not plat.disponible %}plat-indispo{% endif %}">
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            {% if plat.image %}
+                            <img src="{{ plat.image.url }}" alt="{{ plat.nom }}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover;">
+                            {% else %}
+                            <div style="width: 48px; height: 48px; border-radius: 8px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; font-size: 20px;">🍽️</div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ plat.nom }}</strong>
+                                {% if plat.description %}
+                                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">{{ plat.description|truncatechars:50 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong style="color: var(--accent-primary);">{{ plat.prix_unitaire }}€</strong>
+                    </td>
+                    <td>
+                        {% if plat.disponible %}
+                            <span class="badge badge--success">✅ Disponible</span>
+                        {% else %}
+                            <span class="badge badge--danger">❌ Indisponible</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'menu:update_dish' plat.id %}">✏️ Modifier</a>
+                            <a class="btn btn--sm {% if plat.disponible %}btn--warning{% else %}btn--success{% endif %}" href="{% url 'menu:toggle_dish_availability' plat.id %}">
+                                {% if plat.disponible %}🔒 Désactiver{% else %}🔓 Activer{% endif %}
+                            </a>
+                            {% if request.user.role == 'Radmin' %}
+                            <a class="btn btn--sm btn--danger" href="{% url 'menu:delete_dish' plat.id %}">🗑️</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">🍽️</div>
+        <h3 class="empty-state__title">Aucun plat</h3>
+        <p class="empty-state__description">Créez votre premier plat pour commencer</p>
+        <a href="{% url 'menu:create_dish' %}" class="btn btn--primary">+ Créer un plat</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let dispo = 0, indispo = 0;
+    document.querySelectorAll('tbody tr').forEach(tr => {
+        if (tr.classList.contains('plat-indispo')) indispo++;
+        else dispo++;
+    });
+    document.getElementById('plats-dispo').textContent = dispo;
+    document.getElementById('plats-indispo').textContent = indispo;
+});
+</script>
+{% endblock %}

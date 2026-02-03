@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Caisse{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">💰 Gestion de la Caisse</h1>
+        <p class="page-subtitle">Suivez vos entrées et sorties d'argent</p>
+    </div>
+    <div class="btn-group">
+        {% if caisse %}
+            <a href="{% url 'payments:fermer_caisse' caisse.id %}" class="btn btn--danger">🔒 Fermer la caisse</a>
+        {% else %}
+            <a href="{% url 'payments:ouvrir_caisse' %}" class="btn btn--primary">🔓 Ouvrir une caisse</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Navigation Tabs -->
+<div class="card" style="padding: 12px 16px; margin-bottom: 24px;">
+    <div class="btn-group">
+        <a href="{% url 'payments:liste_caisses' %}" class="btn btn--ghost btn--sm">📁 Historique caisses</a>
+        <a href="{% url 'payments:liste_sorties' %}" class="btn btn--ghost btn--sm">📤 Sorties</a>
+        <a href="{% url 'payments:liste_paiements' %}" class="btn btn--ghost btn--sm">💳 Paiements</a>
+        <a href="{% url 'payments:liste_types_depense' %}" class="btn btn--ghost btn--sm">🏷️ Types dépense</a>
+        <a href="{% url 'expenses:create_depense' %}" class="btn btn--warning btn--sm">+ Nouvelle dépense</a>
+    </div>
+</div>
+
+{% if caisse %}
+<!-- Stats Cards pour caisse ouverte -->
+<div class="stats-grid">
+    <div class="stat-card stat-card--success">
+        <div class="stat-card__icon">✅</div>
+        <div class="stat-card__value">Ouverte</div>
+        <div class="stat-card__label">Statut de la caisse</div>
+        <span class="badge badge--success" style="margin-top: 8px;">
+            Depuis {{ caisse.date_ouverture|date:"d/m/Y H:i" }}
+        </span>
+    </div>
+    
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">💵</div>
+        <div class="stat-card__value">{{ caisse.solde_actuel|floatformat:2 }}€</div>
+        <div class="stat-card__label">Solde actuel</div>
+    </div>
+    
+    <div class="stat-card stat-card--info">
+        <div class="stat-card__icon">📊</div>
+        <div class="stat-card__value">{{ caisse.solde_theorique|floatformat:2 }}€</div>
+        <div class="stat-card__label">Solde théorique</div>
+    </div>
+    
+    <div class="stat-card {% if caisse.difference == 0 %}stat-card--success{% elif caisse.difference > 0 %}stat-card--warning{% else %}stat-card--danger{% endif %}">
+        <div class="stat-card__icon">⚖️</div>
+        <div class="stat-card__value">{{ caisse.difference|floatformat:2 }}€</div>
+        <div class="stat-card__label">Différence</div>
+        {% if caisse.difference == 0 %}
+            <span class="badge badge--success" style="margin-top: 8px;">Équilibrée</span>
+        {% elif caisse.difference > 0 %}
+            <span class="badge badge--warning" style="margin-top: 8px;">Excédent</span>
+        {% else %}
+            <span class="badge badge--danger" style="margin-top: 8px;">Déficit</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Détails et actions -->
+<div class="grid grid--2">
+    <!-- Derniers paiements -->
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">💳 Derniers paiements</h3>
+            <a href="{% url 'payments:liste_paiements' %}" class="btn btn--sm btn--ghost">Voir tout</a>
+        </div>
+        <div class="activity-list">
+            {% for paiement in derniers_paiements %}
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(16, 185, 129, 0.15);">💳</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ paiement.commande.numero_commande }}</div>
+                    <div class="activity-item__time">{{ paiement.date_paiement|timesince }} • {{ paiement.get_mode_paiement_display }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--positive">+{{ paiement.montant }}€</div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-state__icon">💳</div>
+                <p class="empty-state__title">Aucun paiement</p>
+                <p class="empty-state__description">Les paiements apparaîtront ici</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Dernières sorties -->
+    <div class="card">
+        <div class="card__header">
+            <h3 class="card__title">📤 Dernières sorties</h3>
+            <a href="{% url 'payments:liste_sorties' %}" class="btn btn--sm btn--ghost">Voir tout</a>
+        </div>
+        <div class="activity-list">
+            {% for sortie in dernieres_sorties %}
+            <div class="activity-item">
+                <div class="activity-item__icon" style="background: rgba(239, 68, 68, 0.15);">📤</div>
+                <div class="activity-item__content">
+                    <div class="activity-item__title">{{ sortie.motif|truncatechars:30 }}</div>
+                    <div class="activity-item__time">{{ sortie.date_sortie|timesince }} • {{ sortie.type_depense.nom }}</div>
+                </div>
+                <div class="activity-item__amount activity-item__amount--negative">-{{ sortie.montant }}€</div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-state__icon">📤</div>
+                <p class="empty-state__title">Aucune sortie</p>
+                <p class="empty-state__description">Les dépenses apparaîtront ici</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">⚡ Actions rapides</h3>
+    </div>
+    <div class="quick-actions">
+        <a href="{% url 'payments:detail_caisse' caisse.id %}" class="quick-action">
+            <div class="quick-action__icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">📋</div>
+            <span class="quick-action__label">Voir les détails</span>
+        </a>
+        <a href="{% url 'expenses:create_depense' %}" class="quick-action">
+            <div class="quick-action__icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">📤</div>
+            <span class="quick-action__label">Nouvelle dépense</span>
+        </a>
+        <a href="{% url 'dashboard:export_ventes_excel' %}" class="quick-action">
+            <div class="quick-action__icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">📊</div>
+            <span class="quick-action__label">Export Excel</span>
+        </a>
+        <a href="{% url 'dashboard:export_ventes_pdf' %}" class="quick-action">
+            <div class="quick-action__icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">📄</div>
+            <span class="quick-action__label">Export PDF</span>
+        </a>
+    </div>
+</div>
+
+{% else %}
+<!-- Pas de caisse ouverte -->
+<div class="card" style="text-align: center; padding: 60px 40px;">
+    <div class="empty-state">
+        <div class="empty-state__icon" style="font-size: 64px;">🔒</div>
+        <h2 class="empty-state__title" style="font-size: 24px; margin-top: 24px;">Aucune caisse ouverte</h2>
+        <p class="empty-state__description" style="max-width: 400px; margin: 12px auto 32px;">
+            Pour commencer à enregistrer des paiements et des dépenses, vous devez d'abord ouvrir une caisse.
+        </p>
+        <a href="{% url 'payments:ouvrir_caisse' %}" class="btn btn--primary btn--lg">
+            🔓 Ouvrir une nouvelle caisse
+        </a>
+    </div>
+</div>
+
+<!-- Historique des caisses -->
+<div class="card" style="margin-top: 24px;">
+    <div class="card__header">
+        <h3 class="card__title">📁 Historique des caisses</h3>
+        <a href="{% url 'payments:liste_caisses' %}" class="btn btn--sm btn--ghost">Voir tout</a>
+    </div>
+    <p style="color: var(--text-secondary); padding: 20px 0;">
+        Consultez l'historique des caisses précédentes pour voir les rapports et statistiques.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

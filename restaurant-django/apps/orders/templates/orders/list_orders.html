@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Commandes{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📋 Gestion des Commandes</h1>
+        <p class="page-subtitle">Suivez et gérez toutes les commandes en temps réel</p>
+    </div>
+</div>
+
+<!-- Filtres rapides -->
+<div class="card" style="padding: 12px 16px; margin-bottom: 24px;">
+    <div class="btn-group">
+        <a href="?statut=" class="btn btn--ghost btn--sm {% if not request.GET.statut %}btn--primary{% endif %}">📋 Toutes</a>
+        <a href="?statut=en_attente" class="btn btn--ghost btn--sm {% if request.GET.statut == 'en_attente' %}btn--warning{% endif %}">⏳ En attente</a>
+        <a href="?statut=servie" class="btn btn--ghost btn--sm {% if request.GET.statut == 'servie' %}btn--info{% endif %}">🍽️ Servies</a>
+        <a href="?statut=payee" class="btn btn--ghost btn--sm {% if request.GET.statut == 'payee' %}btn--success{% endif %}">✅ Payées</a>
+    </div>
+</div>
+
+<!-- Liste des commandes -->
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Liste des commandes</h3>
+        <span class="badge badge--neutral">{{ commandes|length }} commande{{ commandes|length|pluralize }}</span>
+    </div>
+    
+    {% if commandes %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N° Commande</th>
+                    <th>Table</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in commandes %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--accent-primary);">{{ c.numero_commande }}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge--neutral">Table {{ c.table.numero_table }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ c.montant_total }}€</strong>
+                    </td>
+                    <td>
+                        <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% elif c.statut == 'payee' %}badge--success{% else %}badge--neutral{% endif %}">
+                            {% if c.statut == 'en_attente' %}⏳{% elif c.statut == 'servie' %}🍽️{% elif c.statut == 'payee' %}✅{% endif %}
+                            {{ c.get_statut_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="color: var(--text-secondary); font-size: 13px;">
+                            {{ c.date_commande|date:"d/m/Y H:i" }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a class="btn btn--sm btn--ghost" href="{% url 'orders:view_order' c.id %}">👁️ Voir</a>
+                            {% if c.statut == 'en_attente' %}
+                                <a class="btn btn--sm btn--primary" href="{% url 'orders:mark_order_served' c.id %}">🍽️ Servir</a>
+                            {% endif %}
+                            {% if c.statut == 'servie' %}
+                                <a class="btn btn--sm btn--success" href="{% url 'orders:mark_order_paid' c.id %}">💳 Payer</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📋</div>
+        <h3 class="empty-state__title">Aucune commande</h3>
+        <p class="empty-state__description">Les commandes apparaîtront ici une fois passées par les clients</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

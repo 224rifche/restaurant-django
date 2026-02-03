@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('menu', '0006_add_categorie_foreignkey'),
+        
     ]
 
     operations = [

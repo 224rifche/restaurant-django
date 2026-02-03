@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Sortie{% endblock %}
+
+{% block content %}
+<h1 class="h1">Sortie de caisse</h1>
+
+<div class="card">
+    <div>Type: <span class="badge">{{ sortie.type_depense.nom }}</span></div>
+    <div>Montant: <span class="badge">{{ sortie.montant }}</span></div>
+    <div>Motif: <span class="badge">{{ sortie.motif }}</span></div>
+    <div>Date: <span class="badge">{{ sortie.date_sortie }}</span></div>
+    <div>Notes: {{ sortie.notes|default:'-' }}</div>
+</div>
+{% endblock %}

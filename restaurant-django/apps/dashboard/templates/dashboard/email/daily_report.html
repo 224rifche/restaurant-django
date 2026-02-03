@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de caisse quotidien</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f1f5f9;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <tr>
+            <td style="background: linear-gradient(135deg, #3b82f6, #10b981); padding: 32px; text-align: center;">
+                <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                    🍽️ RestauPro
+                </h1>
+                <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                    Rapport de caisse quotidien
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Date -->
+        <tr>
+            <td style="padding: 24px 32px 0;">
+                <p style="margin: 0; color: #64748b; font-size: 14px;">
+                    📅 Rapport du <strong style="color: #0f172a;">{{ date|date:"l d F Y" }}</strong>
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Stats Cards -->
+        <tr>
+            <td style="padding: 24px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                    <tr>
+                        <!-- Total Ventes -->
+                        <td width="50%" style="padding-right: 8px;">
+                            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; text-align: center;">
+                                <p style="margin: 0 0 4px; font-size: 12px; color: #16a34a; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Total Ventes
+                                </p>
+                                <p style="margin: 0; font-size: 28px; font-weight: 700; color: #15803d;">
+                                    +{{ total_paiements }}€
+                                </p>
+                                <p style="margin: 8px 0 0; font-size: 12px; color: #64748b;">
+                                    {{ nb_paiements }} paiement{{ nb_paiements|pluralize }}
+                                </p>
+                            </div>
+                        </td>
+                        <!-- Total Dépenses -->
+                        <td width="50%" style="padding-left: 8px;">
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; text-align: center;">
+                                <p style="margin: 0 0 4px; font-size: 12px; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Total Dépenses
+                                </p>
+                                <p style="margin: 0; font-size: 28px; font-weight: 700; color: #b91c1c;">
+                                    -{{ total_depenses }}€
+                                </p>
+                                <p style="margin: 8px 0 0; font-size: 12px; color: #64748b;">
+                                    {{ nb_depenses }} dépense{{ nb_depenses|pluralize }}
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Solde Net -->
+        <tr>
+            <td style="padding: 0 32px 24px;">
+                <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 12px; padding: 24px; text-align: center;">
+                    <p style="margin: 0 0 4px; font-size: 12px; color: rgba(255,255,255,0.8); text-transform: uppercase; letter-spacing: 0.5px;">
+                        Solde Net de la Journée
+                    </p>
+                    <p style="margin: 0; font-size: 36px; font-weight: 700; color: #ffffff;">
+                        {% if solde_net >= 0 %}+{% endif %}{{ solde_net }}€
+                    </p>
+                </div>
+            </td>
+        </tr>
+        
+        <!-- Statistiques -->
+        <tr>
+            <td style="padding: 0 32px 24px;">
+                <h2 style="margin: 0 0 16px; font-size: 18px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                    📊 Statistiques
+                </h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                    <tr style="background: #f8fafc;">
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #64748b;">Nombre de commandes</span>
+                        </td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: right;">
+                            <strong style="color: #0f172a;">{{ nb_commandes }}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #64748b;">Panier moyen</span>
+                        </td>
+                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; text-align: right;">
+                            <strong style="color: #0f172a;">{{ panier_moyen|floatformat:2 }}€</strong>
+                        </td>
+                    </tr>
+                    {% if caisse %}
+                    <tr style="background: #f8fafc;">
+                        <td style="padding: 12px 16px;">
+                            <span style="color: #64748b;">Solde caisse actuel</span>
+                        </td>
+                        <td style="padding: 12px 16px; text-align: right;">
+                            <strong style="color: #10b981;">{{ caisse.solde_actuel }}€</strong>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Derniers paiements -->
+        {% if paiements %}
+        <tr>
+            <td style="padding: 0 32px 24px;">
+                <h2 style="margin: 0 0 16px; font-size: 18px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                    💳 Derniers paiements
+                </h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                    <tr style="background: #10b981; color: white;">
+                        <th style="padding: 10px 12px; text-align: left; font-size: 12px;">Commande</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 12px;">Heure</th>
+                        <th style="padding: 10px 12px; text-align: right; font-size: 12px;">Montant</th>
+                    </tr>
+                    {% for p in paiements %}
+                    <tr style="{% if forloop.counter|divisibleby:2 %}background: #f8fafc;{% endif %}">
+                        <td style="padding: 10px 12px; font-size: 13px; color: #0f172a;">{{ p.commande.numero_commande }}</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #64748b;">{{ p.date_paiement|time:"H:i" }}</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #10b981; text-align: right; font-weight: 600;">+{{ p.montant }}€</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+        
+        <!-- Dernières dépenses -->
+        {% if depenses %}
+        <tr>
+            <td style="padding: 0 32px 24px;">
+                <h2 style="margin: 0 0 16px; font-size: 18px; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                    📤 Dernières dépenses
+                </h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                    <tr style="background: #ef4444; color: white;">
+                        <th style="padding: 10px 12px; text-align: left; font-size: 12px;">Type</th>
+                        <th style="padding: 10px 12px; text-align: left; font-size: 12px;">Motif</th>
+                        <th style="padding: 10px 12px; text-align: right; font-size: 12px;">Montant</th>
+                    </tr>
+                    {% for d in depenses %}
+                    <tr style="{% if forloop.counter|divisibleby:2 %}background: #f8fafc;{% endif %}">
+                        <td style="padding: 10px 12px; font-size: 13px; color: #0f172a;">{{ d.type_depense.nom }}</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #64748b;">{{ d.motif|truncatechars:30 }}</td>
+                        <td style="padding: 10px 12px; font-size: 13px; color: #ef4444; text-align: right; font-weight: 600;">-{{ d.montant }}€</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        {% endif %}
+        
+        <!-- Footer -->
+        <tr>
+            <td style="background: #1e293b; padding: 24px 32px; text-align: center;">
+                <p style="margin: 0 0 8px; color: #94a3b8; font-size: 12px;">
+                    Ce rapport a été généré automatiquement par RestauPro
+                </p>
+                <p style="margin: 0; color: #64748b; font-size: 11px;">
+                    © {{ date|date:"Y" }} RestauPro - Système de gestion de restaurant
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer table{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🗑️ Supprimer la table</h1>
+        <p class="page-subtitle">Cette action est irréversible</p>
+    </div>
+</div>
+
+<div class="card" style="max-width: 500px;">
+    <div style="text-align: center; padding: 20px;">
+        <div class="stat-card__icon" style="width: 64px; height: 64px; margin: 0 auto 16px; background: rgba(239, 68, 68, 0.15); font-size: 32px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">🪑</div>
+        <h3 style="margin: 0 0 8px;">Table {{ object.numero_table }}</h3>
+        <span class="badge badge--neutral">{{ object.nombre_places }} places</span>
+    </div>
+    
+    <div class="message message--warning" style="margin: 20px 0;">
+        ⚠️ Êtes-vous sûr de vouloir supprimer cette table ?
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="btn-group" style="justify-content: center;">
+            <button class="btn btn--danger btn--lg" type="submit">🗑️ Supprimer</button>
+            <a class="btn btn--ghost" href="{% url 'tables:list_tables' %}">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

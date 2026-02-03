@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Supprimer type de dépense{% endblock %}
+
+{% block content %}
+<h1 class="h1">Supprimer type de dépense</h1>
+
+<div class="card">
+    <p>Confirmer la suppression de <strong>{{ object.nom }}</strong> ?</p>
+    <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn btn--danger" type="submit">Supprimer</button>
+        <a class="btn" href="{% url 'payments:liste_types_depense' %}">Annuler</a>
+    </form>
+</div>
+{% endblock %}

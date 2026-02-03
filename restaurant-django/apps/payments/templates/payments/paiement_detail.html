@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Paiement{% endblock %}
+
+{% block content %}
+<h1 class="h1">Paiement</h1>
+
+<div class="card">
+    <div>Commande: <span class="badge">{{ paiement.commande.numero_commande }}</span></div>
+    <div>Montant: <span class="badge">{{ paiement.montant }}</span></div>
+    <div>Mode: <span class="badge">{{ paiement.get_mode_paiement_display }}</span></div>
+    <div>Date: <span class="badge">{{ paiement.date_paiement }}</span></div>
+</div>
+{% endblock %}

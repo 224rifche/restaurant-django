@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Panier{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🛒 Mon Panier</h1>
+        <p class="page-subtitle">Vérifiez votre commande avant de valider</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'menu:list_dishes' %}" class="btn btn--ghost">🍴 Retour au menu</a>
+        {% if items %}
+        <a href="{% url 'orders:create_order' %}" class="btn btn--primary">✅ Valider la commande</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if items %}
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Articles dans le panier</h3>
+        <span class="badge badge--primary">{{ items|length }} article{{ items|length|pluralize }}</span>
+    </div>
+    
+    <div class="activity-list">
+        {% for item in items %}
+        <div class="activity-item" style="padding: 16px 0;">
+            <div class="activity-item__icon" style="background: rgba(59, 130, 246, 0.15); font-size: 20px;">🍽️</div>
+            <div class="activity-item__content" style="flex: 1;">
+                <div class="activity-item__title">{{ item.plat.nom }}</div>
+                <div class="activity-item__time">{{ item.prix_unitaire }}€ × {{ item.quantite }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <strong style="color: var(--accent-primary); font-size: 18px;">{{ item.sous_total }}€</strong>
+                <div class="btn-group">
+                    <a class="btn btn--sm btn--ghost" href="{% url 'orders:update_cart_item' item.id %}">✏️</a>
+                    <a class="btn btn--sm btn--danger" href="{% url 'orders:remove_from_cart' item.id %}">🗑️</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="border-top: 2px solid var(--border-color); padding-top: 20px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 18px; color: var(--text-secondary);">Total à payer</span>
+        <span style="font-size: 32px; font-weight: 700; color: var(--accent-success);">{{ total }}€</span>
+    </div>
+    
+    <div class="btn-group" style="margin-top: 24px; justify-content: center;">
+        <a href="{% url 'orders:create_order' %}" class="btn btn--primary btn--lg">✅ Valider ma commande</a>
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 60px 40px;">
+    <div class="empty-state">
+        <div class="empty-state__icon" style="font-size: 64px;">🛒</div>
+        <h2 class="empty-state__title" style="font-size: 24px; margin-top: 24px;">Votre panier est vide</h2>
+        <p class="empty-state__description" style="max-width: 400px; margin: 12px auto 32px;">
+            Parcourez notre menu et ajoutez des plats délicieux à votre panier.
+        </p>
+        <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary btn--lg">🍴 Voir le menu</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

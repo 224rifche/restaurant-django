@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Table {{ table.numero_table }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">🪑 Table {{ table.numero_table }}</h1>
+        <p class="page-subtitle">Détails et historique des commandes</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'tables:update_table' table.id %}" class="btn btn--ghost">✏️ Modifier</a>
+        <a href="{% url 'tables:list_tables' %}" class="btn btn--ghost">← Retour</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card stat-card--primary">
+        <div class="stat-card__icon">🪑</div>
+        <div class="stat-card__value">{{ table.nombre_places }}</div>
+        <div class="stat-card__label">Places</div>
+    </div>
+    <div class="stat-card {% if table.current_status == 'libre' %}stat-card--success{% elif table.current_status == 'en_attente' %}stat-card--warning{% else %}stat-card--info{% endif %}">
+        <div class="stat-card__icon">{% if table.current_status == 'libre' %}🟢{% elif table.current_status == 'en_attente' %}⏳{% else %}🍽️{% endif %}</div>
+        <div class="stat-card__value">{{ table.get_current_status_display }}</div>
+        <div class="stat-card__label">Statut actuel</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-card__icon">👤</div>
+        <div class="stat-card__value">{% if table.user %}{{ table.user.login }}{% else %}-{% endif %}</div>
+        <div class="stat-card__label">Utilisateur assigné</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">📋 Commandes de cette table</h3>
+    </div>
+    
+    {% if commandes %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>N° Commande</th>
+                    <th>Montant</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in commandes %}
+                <tr>
+                    <td><strong style="color: var(--accent-primary);">{{ c.numero_commande }}</strong></td>
+                    <td><strong>{{ c.montant_total }}€</strong></td>
+                    <td>
+                        <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% else %}badge--success{% endif %}">
+                            {{ c.get_statut_display }}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-secondary);">{{ c.date_commande|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a class="btn btn--sm btn--ghost" href="{% url 'orders:view_order' c.id %}">👁️ Voir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📋</div>
+        <p class="empty-state__title">Aucune commande</p>
+        <p class="empty-state__description">Cette table n'a pas encore de commandes</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

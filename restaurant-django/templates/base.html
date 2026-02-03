@@ -1,0 +1,241 @@
+{% load static %}
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Restaurant{% endblock %} | Gestion Restaurant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'app.css' %}?v={% now 'U' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+{% if request.user.is_authenticated %}
+<div class="app-layout">
+    <div class="sidebar-overlay" data-sidebar-overlay></div>
+    <!-- Sidebar -->
+    <aside class="sidebar" data-sidebar>
+        <a href="{% url 'authentication:redirect_after_login' %}" class="sidebar__logo">
+            <div class="sidebar__logo-icon">🍽️</div>
+            <span class="sidebar__logo-text">RestauPro</span>
+        </a>
+
+        <button type="button" class="sidebar__close" aria-label="Fermer le menu" data-sidebar-close>✕</button>
+
+        <nav class="sidebar__nav">
+            {# Admin - accès complet #}
+            {% if request.user.role == 'Radmin' %}
+                <a href="{% url 'dashboard:home' %}" class="sidebar__link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="{% url 'tables:list_tables' %}" class="sidebar__link {% if 'tables' in request.path %}active{% endif %}">
+                    <span>🪑</span> Tables
+                </a>
+                <a href="{% url 'orders:list_orders' %}" class="sidebar__link {% if 'orders' in request.path and 'cart' not in request.path %}active{% endif %}">
+                    <span>📋</span> Commandes
+                </a>
+                <a href="{% url 'menu:manage_dishes' %}" class="sidebar__link {% if 'menu' in request.path %}active{% endif %}">
+                    <span>🍴</span> Menu
+                </a>
+                
+                <div class="sidebar__section">
+                    <div class="sidebar__section-title">Finance</div>
+                    <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path %}active{% endif %}">
+                        <span>💰</span> Caisse
+                    </a>
+                    <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
+                        <span>📤</span> Dépenses
+                    </a>
+                </div>
+
+                <div class="sidebar__section">
+                    <div class="sidebar__section-title">Administration</div>
+                    <a href="{% url 'authentication:list_users' %}" class="sidebar__link {% if 'users' in request.path %}active{% endif %}">
+                        <span>👥</span> Utilisateurs
+                    </a>
+                </div>
+            {% endif %}
+
+            {# Comptable #}
+            {% if request.user.role == 'Rcomptable' %}
+                <a href="{% url 'dashboard:home' %}" class="sidebar__link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <span>📊</span> Dashboard
+                </a>
+                <a href="{% url 'payments:dashboard_caisse' %}" class="sidebar__link {% if 'payments' in request.path %}active{% endif %}">
+                    <span>💰</span> Caisse
+                </a>
+                <a href="{% url 'payments:liste_paiements' %}" class="sidebar__link">
+                    <span>💳</span> Paiements
+                </a>
+                <a href="{% url 'expenses:create_depense' %}" class="sidebar__link {% if 'expenses' in request.path %}active{% endif %}">
+                    <span>📤</span> Dépenses
+                </a>
+            {% endif %}
+
+            {# Cuisinier #}
+            {% if request.user.role == 'Rcuisinier' %}
+                <a href="{% url 'menu:manage_dishes' %}" class="sidebar__link {% if 'menu' in request.path %}active{% endif %}">
+                    <span>🍴</span> Gestion Menu
+                </a>
+            {% endif %}
+
+            {# Serveur #}
+            {% if request.user.role == 'Rservent' %}
+                <a href="{% url 'tables:list_tables' %}" class="sidebar__link {% if 'tables' in request.path %}active{% endif %}">
+                    <span>🪑</span> Tables
+                </a>
+                <a href="{% url 'orders:list_orders' %}" class="sidebar__link {% if 'orders' in request.path %}active{% endif %}">
+                    <span>📋</span> Commandes
+                </a>
+            {% endif %}
+
+            {# Table (Client) #}
+            {% if request.user.role == 'Rtable' %}
+                <a href="{% url 'menu:list_dishes' %}" class="sidebar__link {% if 'menu' in request.path %}active{% endif %}">
+                    <span>🍴</span> Menu
+                </a>
+                <a href="{% url 'orders:view_cart' %}" class="sidebar__link {% if 'cart' in request.path %}active{% endif %}">
+                    <span>🛒</span> Mon Panier
+                </a>
+                <a href="{% url 'orders:order_history' %}" class="sidebar__link {% if 'history' in request.path %}active{% endif %}">
+                    <span>📜</span> Mes Commandes
+                </a>
+            {% endif %}
+        </nav>
+
+        <!-- User info -->
+        <div class="sidebar__user">
+            <div class="sidebar__user-info">
+                <div class="sidebar__user-avatar">
+                    {{ request.user.login|slice:":2"|upper }}
+                </div>
+                <div class="sidebar__user-details">
+                    <div class="sidebar__user-name">{{ request.user.login }}</div>
+                    <div class="sidebar__user-role">{{ request.user.get_role_display }}</div>
+                </div>
+            </div>
+            <a href="{% url 'authentication:logout' %}" class="btn btn--ghost btn--sm" style="width: 100%; margin-top: 12px;">
+                🚪 Déconnexion
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+        <header class="topbar">
+            <button type="button" class="topbar__menu" aria-label="Ouvrir le menu" data-sidebar-toggle>☰</button>
+            <form class="topbar__search" role="search" action="#" method="get">
+                <input class="topbar__search-input" type="search" name="q" placeholder="Search..." autocomplete="off">
+            </form>
+            <div class="topbar__right">
+                <span class="topbar__status">
+                    <span class="topbar__status-dot"></span>
+                    System Online
+                </span>
+                <details class="topbar__user">
+                    <summary class="topbar__user-trigger" aria-label="Compte utilisateur">
+                        <span class="topbar__avatar">{{ request.user.login|slice:":2"|upper }}</span>
+                        <span class="topbar__user-meta">
+                            <span class="topbar__user-name">{{ request.user.login }}</span>
+                            <span class="topbar__user-role">{{ request.user.get_role_display }}</span>
+                        </span>
+                    </summary>
+                    <div class="topbar__menu-panel">
+                        <a class="topbar__menu-item" href="{% url 'authentication:logout' %}">🚪 Déconnexion</a>
+                    </div>
+                </details>
+            </div>
+        </header>
+        <div class="content-container">
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message message--{{ message.tags|default:'info' }}">
+                            {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+        <footer class="app-footer">
+            <div class="app-footer__left">RestauPro © {% now "Y" %}</div>
+            <div class="app-footer__center">Gestion de restaurant</div>
+            <div class="app-footer__right">Connecté en tant que {{ request.user.login }} ({{ request.user.get_role_display }})</div>
+        </footer>
+    </main>
+</div>
+
+<!-- Mobile Navigation -->
+<nav class="mobile-nav">
+    {% if request.user.role == 'Radmin' %}
+        <a href="{% url 'dashboard:home' %}" class="mobile-nav__link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">📊<span>Dashboard</span></a>
+        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}">🪑<span>Tables</span></a>
+        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}">📋<span>Commandes</span></a>
+        <a href="{% url 'payments:dashboard_caisse' %}" class="mobile-nav__link {% if 'payments' in request.path %}active{% endif %}">💰<span>Caisse</span></a>
+    {% elif request.user.role == 'Rservent' %}
+        <a href="{% url 'tables:list_tables' %}" class="mobile-nav__link {% if 'tables' in request.path %}active{% endif %}">🪑<span>Tables</span></a>
+        <a href="{% url 'orders:list_orders' %}" class="mobile-nav__link {% if 'orders' in request.path %}active{% endif %}">📋<span>Commandes</span></a>
+    {% elif request.user.role == 'Rtable' %}
+        <a href="{% url 'menu:list_dishes' %}" class="mobile-nav__link {% if 'menu' in request.path %}active{% endif %}">🍴<span>Menu</span></a>
+        <a href="{% url 'orders:view_cart' %}" class="mobile-nav__link {% if 'cart' in request.path %}active{% endif %}">🛒<span>Panier</span></a>
+    {% endif %}
+</nav>
+
+<script>
+(() => {
+  const sidebar = document.querySelector('[data-sidebar]');
+  const overlay = document.querySelector('[data-sidebar-overlay]');
+  const openBtn = document.querySelector('[data-sidebar-toggle]');
+  const closeBtn = document.querySelector('[data-sidebar-close]');
+
+  if (!sidebar || !overlay || !openBtn || !closeBtn) return;
+
+  const open = () => {
+    sidebar.classList.add('sidebar--open');
+    overlay.classList.add('sidebar-overlay--visible');
+    document.body.classList.add('sidebar-open');
+  };
+
+  const close = () => {
+    sidebar.classList.remove('sidebar--open');
+    overlay.classList.remove('sidebar-overlay--visible');
+    document.body.classList.remove('sidebar-open');
+  };
+
+  openBtn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+})();
+</script>
+
+{% else %}
+<!-- Non-authenticated layout -->
+<main class="container">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="message message--{{ message.tags|default:'info' }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block public_content %}{% endblock %}
+</main>
+<footer class="app-footer app-footer--public">
+    <div class="app-footer__left">RestauPro © {% now "Y" %}</div>
+    <div class="app-footer__center">Gestion de restaurant</div>
+    <div class="app-footer__right">Sécurisé • Connexion</div>
+</footer>
+{% endif %}
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

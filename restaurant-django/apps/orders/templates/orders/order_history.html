@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Mes Commandes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">📜 Mes Commandes</h1>
+        <p class="page-subtitle">Historique de vos commandes passées</p>
+    </div>
+    <div class="btn-group">
+        <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary">🍴 Commander à nouveau</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <h3 class="card__title">Historique</h3>
+        <span class="badge badge--neutral">{{ commandes|length }} commande{{ commandes|length|pluralize }}</span>
+    </div>
+    
+    {% if commandes %}
+    <div class="activity-list">
+        {% for c in commandes %}
+        <a href="{% url 'orders:view_order' c.id %}" class="activity-item" style="text-decoration: none; cursor: pointer;">
+            <div class="activity-item__icon" style="{% if c.statut == 'en_attente' %}background: rgba(245, 158, 11, 0.15);{% elif c.statut == 'servie' %}background: rgba(6, 182, 212, 0.15);{% else %}background: rgba(16, 185, 129, 0.15);{% endif %}">
+                {% if c.statut == 'en_attente' %}⏳{% elif c.statut == 'servie' %}🍽️{% else %}✅{% endif %}
+            </div>
+            <div class="activity-item__content">
+                <div class="activity-item__title">{{ c.numero_commande }}</div>
+                <div class="activity-item__time">{{ c.date_commande|date:"d/m/Y à H:i" }}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge {% if c.statut == 'en_attente' %}badge--warning{% elif c.statut == 'servie' %}badge--info{% else %}badge--success{% endif %}">
+                    {{ c.get_statut_display }}
+                </span>
+                <strong style="color: var(--accent-primary);">{{ c.montant_total }}€</strong>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state__icon">📜</div>
+        <h3 class="empty-state__title">Aucune commande</h3>
+        <p class="empty-state__description">Vous n'avez pas encore passé de commande</p>
+        <a href="{% url 'menu:list_dishes' %}" class="btn btn--primary">🍴 Voir le menu</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

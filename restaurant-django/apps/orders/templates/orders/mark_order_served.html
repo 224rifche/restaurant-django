@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Marquer servie{% endblock %}
+
+{% block content %}
+<h1 class="h1">Marquer la commande comme servie</h1>
+
+<div class="card">
+    <p>Confirmer que la commande <strong>{{ commande.numero_commande }}</strong> est servie ?</p>
+    <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn btn--primary" type="submit">Confirmer</button>
+        <a class="btn" href="{% url 'orders:list_orders' %}">Annuler</a>
+    </form>
+</div>
+{% endblock %}
