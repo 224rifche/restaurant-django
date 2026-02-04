@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Supprimer type de dépense{% endblock %}
 
@@ -6,11 +7,34 @@
 <h1 class="h1">Supprimer type de dépense</h1>
 
 <div class="card">
+    {% if object.sorties.exists %}
+    <div class="alert alert--warning" style="margin-bottom: 20px;">
+        <span class="alert__icon">⚠️</span>
+        <div class="alert__content">
+            <strong>Attention !</strong> Ce type de dépense est utilisé par {{ object.sorties.count }} sortie(s) de caisse.
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                {% for sortie in object.sorties.all|slice:":5" %}
+                <li>{{ sortie.motif }} - {{ sortie.montant|gnf }} ({{ sortie.date_sortie|date:"d/m/Y" }})</li>
+                {% endfor %}
+                {% if object.sorties.count > 5 %}
+                <li>... et {{ object.sorties.count|add:"-5" }} autre(s)</li>
+                {% endif %}
+            </ul>
+            <p>Vous ne pouvez pas supprimer ce type de dépense tant qu'il est utilisé.</p>
+        </div>
+    </div>
+    <div class="actions">
+        <a href="{% url 'payments:liste_types_depense' %}" class="btn btn--primary">← Retour à la liste</a>
+    </div>
+    {% else %}
     <p>Confirmer la suppression de <strong>{{ object.nom }}</strong> ?</p>
+    <p style="color: #6b7280; font-size: 0.875rem;">Cette action est irréversible.</p>
+    
     <form method="post" class="actions">
         {% csrf_token %}
-        <button class="btn btn--danger" type="submit">Supprimer</button>
+        <button class="btn btn--danger" type="submit">🗑️ Supprimer</button>
         <a class="btn" href="{% url 'payments:liste_types_depense' %}">Annuler</a>
     </form>
+    {% endif %}
 </div>
 {% endblock %}

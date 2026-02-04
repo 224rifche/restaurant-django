@@ -1,0 +1,1 @@
+# Fichier __init__.py vide pour rendre templatetags un package Python

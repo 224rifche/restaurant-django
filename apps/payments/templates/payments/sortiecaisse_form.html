@@ -10,7 +10,6 @@
     </div>
     <div class="btn-group">
         <a href="{% url 'payments:liste_sorties' %}" class="btn btn--ghost">← Retour aux sorties</a>
-        <a href="{% url 'payments:liste_types_depense' %}" class="btn btn--outline">📋 Gérer les types</a>
     </div>
 </div>
 
@@ -34,13 +33,13 @@
         <div class="form-grid">
             <div class="form-group">
                 <label for="{{ form.type_depense.id_for_label }}" class="form-label">
-                    Type de dépense <span class="required">*</span>
+                    Type de dépense
                 </label>
                 {{ form.type_depense }}
                 {% if form.type_depense.errors %}
                 <div class="form-error">{{ form.type_depense.errors }}</div>
                 {% endif %}
-                <small class="form-help">Sélectionnez le type de dépense approprié</small>
+                <small class="form-help">Entrez librement le type de dépense (ex: Transport, Nourriture, Fournitures...)</small>
             </div>
 
             <div class="form-group">
@@ -108,17 +107,17 @@
     <div class="card__content">
         <div class="help-grid">
             <div class="help-item">
-                <span class="help-icon">📋</span>
-                <div class="help-content">
-                    <strong>Types de dépenses</strong>
-                    <p>Pas le bon type ? <a href="{% url 'payments:liste_types_depense' %}" class="link">Créez-en un nouveau</a></p>
-                </div>
-            </div>
-            <div class="help-item">
-                <span class="help-icon">📄</span>
+                <span class="help-icon">�</span>
                 <div class="help-content">
                     <strong>Justificatif</strong>
                     <p>Important pour la comptabilité et le suivi des dépenses</p>
+                </div>
+            </div>
+            <div class="help-item">
+                <span class="help-icon">�</span>
+                <div class="help-content">
+                    <strong>Type de dépense</strong>
+                    <p>Entrez ce que vous voulez, le système créera automatiquement la catégorie</p>
                 </div>
             </div>
         </div>

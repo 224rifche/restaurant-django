@@ -108,16 +108,49 @@ if not DEBUG and not HAS_S3_CREDS:
 # Application de la config
 if USE_S3 and HAS_S3_CREDS:
     try:
-        DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
         MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+        
+        # Configuration STORAGES pour Django 4.2+ (DEFAULT_FILE_STORAGE n'est plus utilisé)
+        STORAGES = {
+            "default": {
+                "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+                "OPTIONS": {
+                    "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                    "custom_domain": AWS_S3_CUSTOM_DOMAIN,
+                    "file_overwrite": AWS_S3_FILE_OVERWRITE,
+                    "querystring_auth": AWS_QUERYSTRING_AUTH,
+                    "default_acl": AWS_DEFAULT_ACL,
+                    "signature_version": AWS_S3_SIGNATURE_VERSION,
+                    "region_name": AWS_S3_REGION_NAME,
+                }
+            },
+            "staticfiles": {
+                "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+            }
+        }
+        
         logger.info(f"✅ S3 activé : {AWS_STORAGE_BUCKET_NAME} ({AWS_S3_REGION_NAME})")
     except Exception as e:
         logger.error(f"❌ Erreur configuration S3 : {e}")
         raise
 else:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'
+    
+    # Configuration STORAGES pour local
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {
+                "location": MEDIA_ROOT,
+                "base_url": MEDIA_URL,
+            }
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        }
+    }
+    
     logger.warning("⚠️ Stockage local activé (développement uniquement)")
 
 # ===== STATIC FILES =====
@@ -258,7 +291,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             'libraries': {
-                'staticfiles': 'django.templatetags.static',
+                'staticfiles': 'django.templatetags.static'
             }
         },
     },
@@ -295,7 +328,6 @@ if not DEBUG:
     ]
     
     # Configuration WhiteNoise pour la production
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_USE_FINDERS = True
     
@@ -306,7 +338,6 @@ if not DEBUG:
         WHITENOISE_INDEX_FILE = True
 else:
     # Configuration développement
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_USE_FINDERS = True
 
@@ -358,21 +389,4 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@restaurant.com')
 
 
-# ===== AWS S3 CONFIG =====
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME")
-
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = None
-
-AWS_QUERYSTRING_AUTH = False
-
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
-MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"

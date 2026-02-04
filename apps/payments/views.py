@@ -8,7 +8,9 @@ from django.urls import reverse_lazy, reverse
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 
@@ -303,6 +305,7 @@ class TypeDepenseListView(LoginRequiredMixin, ListView):
         ).order_by('nom')
 
 
+@method_decorator(csrf_protect, name='dispatch')
 class TypeDepenseCreateView(LoginRequiredMixin, CreateView):
     model = TypeDepense
     form_class = TypeDepenseForm
@@ -310,6 +313,7 @@ class TypeDepenseCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('payments:liste_types_depense')
 
 
+@method_decorator(csrf_protect, name='dispatch')
 class TypeDepenseUpdateView(LoginRequiredMixin, UpdateView):
     model = TypeDepense
     form_class = TypeDepenseForm
@@ -317,6 +321,7 @@ class TypeDepenseUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('payments:liste_types_depense')
 
 
+@method_decorator(csrf_protect, name='dispatch')
 class TypeDepenseDeleteView(LoginRequiredMixin, DeleteView):
     model = TypeDepense
     template_name = 'payments/typedepense_confirm_delete.html'
@@ -324,10 +329,21 @@ class TypeDepenseDeleteView(LoginRequiredMixin, DeleteView):
     
     def delete(self, request, *args, **kwargs):
         type_depense = self.get_object()
+        
+        # Vérifier si des sorties de caisse utilisent ce type
         if type_depense.sorties.exists():
-            messages.error(request, 'Impossible de supprimer ce type de dépense car il est utilisé par des sorties de caisse.')
+            messages.error(request, f'Impossible de supprimer "{type_depense.nom}" car il est utilisé par {type_depense.sorties.count()} sortie(s) de caisse.')
             return redirect('payments:liste_types_depense')
-        return super().delete(request, *args, **kwargs)
+        
+        try:
+            return super().delete(request, *args, **kwargs)
+        except Exception as e:
+            messages.error(request, f'Erreur lors de la suppression : {str(e)}')
+            return redirect('payments:liste_types_depense')
+    
+    def form_valid(self, form):
+        messages.success(self.request, f'Le type de dépense "{self.object.nom}" a été supprimé avec succès.')
+        return super().form_valid(form)
 
 
 # Vues pour les sorties de caisse
@@ -347,6 +363,23 @@ class SortieCaisseCreateView(LoginRequiredMixin, CreateView):
         if not caisse:
             form.add_error(None, 'Aucune caisse n\'est ouverte. Veuillez ouvrir une caisse avant d\'enregistrer une sortie.')
             return self.form_invalid(form)
+        
+        # Gérer le type de dépense (créer automatiquement si nécessaire)
+        type_depense_text = form.cleaned_data.get('type_depense')
+        if type_depense_text:
+            # Chercher ou créer le type de dépense
+            type_depense, created = TypeDepense.objects.get_or_create(
+                nom__iexact=type_depense_text.strip(),
+                defaults={'nom': type_depense_text.strip()}
+            )
+            form.instance.type_depense = type_depense
+        else:
+            # Si aucun type n'est spécifié, utiliser un type par défaut
+            type_depense, created = TypeDepense.objects.get_or_create(
+                nom__iexact='Autre',
+                defaults={'nom': 'Autre'}
+            )
+            form.instance.type_depense = type_depense
         
         form.instance.caisse = caisse
         form.instance.utilisateur = self.request.user

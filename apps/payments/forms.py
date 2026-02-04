@@ -99,8 +99,9 @@ class SortieCaisseForm(forms.ModelForm):
         model = SortieCaisse
         fields = ['type_depense', 'montant', 'motif', 'justificatif', 'notes']
         widgets = {
-            'type_depense': forms.Select(attrs={
+            'type_depense': forms.TextInput(attrs={
                 'class': 'w-full p-2 border border-gray-300 rounded-md',
+                'placeholder': 'Entrez le type de dépense (ex: Transport, Nourriture, Fournitures...)'
             }),
             'montant': forms.NumberInput(attrs={
                 'class': 'w-full p-2 border border-gray-300 rounded-md',
@@ -124,8 +125,9 @@ class SortieCaisseForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Ordonner les types de dépense par nom
-        self.fields['type_depense'].queryset = TypeDepense.objects.all().order_by('nom')
+        # Rendre le champ type_depense optionnel et libre
+        self.fields['type_depense'].required = False
+        self.fields['type_depense'].help_text = "Vous pouvez entrer n'importe quel type de dépense"
     
     def clean_montant(self):
         montant = self.cleaned_data.get('montant')

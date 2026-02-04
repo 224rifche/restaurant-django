@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load gnf %}
 
 {% block title %}Types de dépenses{% endblock %}
 
@@ -28,7 +29,7 @@
     <div class="stat-card">
         <div class="stat-icon">💰</div>
         <div class="stat-content">
-            <div class="stat-value">{% for t in types_depense %}{% if t.total_depenses %}{{ t.total_depenses|gnf }}{% endif %}{% endfor %}</div>
+            <div class="stat-value">{% for t in types_depense %}{% if t.total_depenses %}{{ t.total_depenses|floatformat:0 }}{% endif %}{% endfor %}</div>
             <div class="stat-label">Total des dépenses</div>
         </div>
     </div>
@@ -76,10 +77,17 @@
                             <span class="btn-icon">✏️</span>
                             Modifier
                         </a>
+                        {% if type_depense.sorties.exists %}
+                        <button class="btn btn--sm btn--danger" disabled title="Utilisé par {{ type_depense.sorties.count }} sortie{{ type_depense.sorties.count|pluralize }}">
+                            <span class="btn-icon">🗑️</span>
+                            Supprimer
+                        </button>
+                        {% else %}
                         <a href="{% url 'payments:supprimer_type_depense' type_depense.pk %}" class="btn btn--sm btn--danger">
                             <span class="btn-icon">🗑️</span>
                             Supprimer
                         </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
