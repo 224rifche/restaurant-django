@@ -76,93 +76,6 @@ INSTALLED_APPS = [
    
 ]
 
-# ===== AWS S3 CONFIG ROBUSTE =====
-import logging
-from django.core.exceptions import ImproperlyConfigured
-
-logger = logging.getLogger(__name__)
-
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "mon-restaurant-media-2026")
-AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "eu-west-3")
-
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = None
-AWS_QUERYSTRING_AUTH = False
-AWS_S3_SIGNATURE_VERSION = 's3v4'
-
-# Vérification stricte des credentials
-HAS_S3_CREDS = all([
-    AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY,
-    AWS_STORAGE_BUCKET_NAME,
-    len(AWS_ACCESS_KEY_ID or "") > 10,  # Validation basique
-    len(AWS_SECRET_ACCESS_KEY or "") > 20
-])
-
-# Stratégie de stockage
-USE_S3 = config('USE_S3', default=not DEBUG, cast=bool)
-
-# PROTECTION : En production, S3 est OBLIGATOIRE
-if not DEBUG and not HAS_S3_CREDS:
-    logger.critical("🚨 ERREUR CRITIQUE : Credentials S3 manquants en PRODUCTION !")
-    logger.critical("Variables requises : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME")
-    raise ImproperlyConfigured(
-        "⚠️ PRODUCTION : AWS S3 credentials manquants !\n"
-        "Variables requises : AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_STORAGE_BUCKET_NAME\n"
-        "Configurez ces variables dans votre dashboard d'hébergement (Render/Railway/Heroku)"
-    )
-
-# Application de la config
-if USE_S3 and HAS_S3_CREDS:
-    try:
-        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-        
-        # Configuration STORAGES pour Django 4.2+ (DEFAULT_FILE_STORAGE n'est plus utilisé)
-        STORAGES = {
-            "default": {
-                "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-                "OPTIONS": {
-                    "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                    "custom_domain": AWS_S3_CUSTOM_DOMAIN,
-                    "file_overwrite": AWS_S3_FILE_OVERWRITE,
-                    "querystring_auth": AWS_QUERYSTRING_AUTH,
-                    "default_acl": AWS_DEFAULT_ACL,
-                    "signature_version": AWS_S3_SIGNATURE_VERSION,
-                    "region_name": AWS_S3_REGION_NAME,
-                }
-            },
-            "staticfiles": {
-                "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-            }
-        }
-        
-        logger.info(f"✅ S3 activé : {AWS_STORAGE_BUCKET_NAME} ({AWS_S3_REGION_NAME})")
-    except Exception as e:
-        logger.error(f"❌ Erreur configuration S3 : {e}")
-        raise
-else:
-    MEDIA_ROOT = BASE_DIR / 'media'
-    MEDIA_URL = '/media/'
-    
-    # Configuration STORAGES pour local
-    STORAGES = {
-        "default": {
-            "BACKEND": "django.core.files.storage.FileSystemStorage",
-            "OPTIONS": {
-                "location": MEDIA_ROOT,
-                "base_url": MEDIA_URL,
-            }
-        },
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-        }
-    }
-    
-    logger.warning("⚠️ Stockage local activé (développement uniquement)")
-
 # ===== CLOUDINARY CONFIG =====
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -177,7 +90,7 @@ HAS_CLOUDINARY_CREDS = all([
     CLOUDINARY_STORAGE['API_SECRET']
 ])
 
-# Stratégie de stockage pour les images (priorité à Cloudinary)
+# Stratégie de stockage pour les images
 USE_CLOUDINARY = config('USE_CLOUDINARY', default=not DEBUG, cast=bool)
 
 # Configuration du stockage par défaut
@@ -185,47 +98,32 @@ if USE_CLOUDINARY and HAS_CLOUDINARY_CREDS:
     # Utiliser Cloudinary pour les images en production
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     MEDIA_URL = 'https://res.cloudinary.com/{}/image/upload/'.format(CLOUDINARY_STORAGE['CLOUD_NAME'])
-    logger.info(f"✅ Cloudinary activé : {CLOUDINARY_STORAGE['CLOUD_NAME']}")
-elif USE_S3 and HAS_S3_CREDS:
-    # Utiliser S3 si Cloudinary n'est pas disponible
-    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
-    logger.info(f"✅ S3 activé : {AWS_STORAGE_BUCKET_NAME} ({AWS_S3_REGION_NAME})")
+    print(f"✅ Cloudinary activé : {CLOUDINARY_STORAGE['CLOUD_NAME']}")
 else:
     # Stockage local par défaut
     MEDIA_ROOT = BASE_DIR / 'media'
     MEDIA_URL = '/media/'
-    logger.warning("⚠️ Stockage local activé (développement uniquement)")
+    print("⚠️ Stockage local activé (développement uniquement)")
 
 # ===== STATIC FILES =====
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Configuration de logging pour les erreurs S3
+# Configuration de logging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'django_s3_errors.log',
-        },
         'console': {
-            'level': 'ERROR',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
-        'restaurant_management.storage_backend': {
-            'handlers': ['file', 'console'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-        'apps.menu': {
-            'handlers': ['file', 'console'],
-            'level': 'ERROR',
-            'propagate': True,
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
         },
     },
 }
