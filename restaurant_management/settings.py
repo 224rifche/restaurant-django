@@ -272,11 +272,10 @@ if not DEBUG:
     WHITENOISE_MAX_AGE = 31536000
     WHITENOISE_USE_FINDERS = True
     
-    # Configuration des médias en production (si pas de S3)
-    if not USE_S3:
-        WHITENOISE_ROOT = os.path.join(BASE_DIR, 'media')
-        WHITENOISE_SKIP_REGULAR_MIME_TYPES = True
-        WHITENOISE_INDEX_FILE = True
+    # Configuration des médias en production (stockage local)
+    WHITENOISE_ROOT = os.path.join(BASE_DIR, 'media')
+    WHITENOISE_SKIP_REGULAR_MIME_TYPES = True
+    WHITENOISE_INDEX_FILE = True
 else:
     # Configuration développement
     WHITENOISE_MAX_AGE = 31536000
