@@ -53,6 +53,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'whitenoise.runserver_nostatic',
+    
+    # Applications tierces
+    'rest_framework',
+    'corsheaders',
+    'widget_tweaks',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'storages',
+    'cloudinary',
+    'cloudinary_storage',
     
     # Apps locales
     'apps.authentication',
@@ -62,7 +73,6 @@ INSTALLED_APPS = [
     'apps.payments',
     'apps.core',
     'apps.dashboard',
-    'storages',
    
 ]
 
@@ -151,6 +161,39 @@ else:
         }
     }
     
+    logger.warning("⚠️ Stockage local activé (développement uniquement)")
+
+# ===== CLOUDINARY CONFIG =====
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+# Vérification des credentials Cloudinary
+HAS_CLOUDINARY_CREDS = all([
+    CLOUDINARY_STORAGE['CLOUD_NAME'],
+    CLOUDINARY_STORAGE['API_KEY'],
+    CLOUDINARY_STORAGE['API_SECRET']
+])
+
+# Stratégie de stockage pour les images (priorité à Cloudinary)
+USE_CLOUDINARY = config('USE_CLOUDINARY', default=not DEBUG, cast=bool)
+
+# Configuration du stockage par défaut
+if USE_CLOUDINARY and HAS_CLOUDINARY_CREDS:
+    # Utiliser Cloudinary pour les images en production
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    MEDIA_URL = 'https://res.cloudinary.com/{}/image/upload/'.format(CLOUDINARY_STORAGE['CLOUD_NAME'])
+    logger.info(f"✅ Cloudinary activé : {CLOUDINARY_STORAGE['CLOUD_NAME']}")
+elif USE_S3 and HAS_S3_CREDS:
+    # Utiliser S3 si Cloudinary n'est pas disponible
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+    logger.info(f"✅ S3 activé : {AWS_STORAGE_BUCKET_NAME} ({AWS_S3_REGION_NAME})")
+else:
+    # Stockage local par défaut
+    MEDIA_ROOT = BASE_DIR / 'media'
+    MEDIA_URL = '/media/'
     logger.warning("⚠️ Stockage local activé (développement uniquement)")
 
 # ===== STATIC FILES =====
