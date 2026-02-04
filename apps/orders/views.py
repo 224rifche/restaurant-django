@@ -606,7 +606,7 @@ def invoice_order(request, order_id):
         'commande': commande,
         'items': items
     })
-@role_required(['Rtable', 'Rservent', 'Radmin'])
+@role_required(['Rtable', 'Radmin'])
 def delete_order(request, order_id):
     """Supprimer une commande (uniquement si elle est en attente)"""
     commande = get_object_or_404(Commande, id=order_id)

@@ -34,7 +34,7 @@
     </div>
 </div>
 
-{% if request.user.role == 'Rcaissier' %}
+{% if request.user.role == 'Rcaissier' or request.user.role == 'Rservent' %}
 <!-- Stats rapides -->
 <div class="stats-grid">
     <div class="stat-card stat-card--success">
@@ -110,7 +110,9 @@
                 <a href="{% url 'orders:view_order' c.id %}" class="btn btn--sm btn--ghost">👁️ Voir</a>
                 {% if c.statut == 'en_attente' %}
                     <a href="{% url 'orders:mark_order_served' c.id %}" class="btn btn--sm btn--primary">🍽️ Servir</a>
+                    {% if request.user.role == 'Radmin' %}
                     <a href="{% url 'orders:delete_order' c.id %}" class="btn btn--sm btn--danger" style="background: #dc2626; color: white;">🗑️ Supprimer</a>
+                    {% endif %}
                 {% elif c.statut == 'servie' %}
                     <a href="{% url 'orders:mark_order_paid' c.id %}" class="btn btn--sm btn--success">💳 Payer</a>
                 {% endif %}
