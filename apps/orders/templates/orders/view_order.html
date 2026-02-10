@@ -10,7 +10,7 @@
         <p class="page-subtitle">Table {{ commande.table.numero_table }}</p>
     </div>
     <div class="btn-group">
-        {% if commande.statut == 'en_attente' and request.user.role != 'Rcaissier' %}
+        {% if commande.statut == 'en_attente' and request.user.role != 'Rcaissier' and request.user.role != 'Rservent' %}
         <a href="{% url 'orders:mark_order_served' commande.id %}" class="btn btn--primary">🍽️ Marquer servie</a>
         {% elif commande.statut == 'servie' %}
         <a href="{% url 'orders:mark_order_paid' commande.id %}" class="btn btn--success">💳 Encaisser</a>

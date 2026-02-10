@@ -210,7 +210,7 @@
   @media (max-width: 980px){.order-layout{grid-template-columns:1fr}.order-sidebar{position:static}}
 </style>
 
-{% if request.user.role == 'Radmin' or request.user.role == 'Rcaissier' %}
+{% if request.user.role == 'Radmin' or request.user.role == 'Rcaissier' or request.user.role == 'Rservent' %}
 <div class="card">
     <div class="card__header">
         <h3 class="card__title">📋 Commandes de cette table</h3>

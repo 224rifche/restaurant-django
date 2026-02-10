@@ -212,7 +212,7 @@ def table_detail(request, table_id):
     q = (request.GET.get('q') or '').strip()
     plats = Plat.objects.filter(disponible=True)
     if cat and cat in categories:
-        plats = plats.filter(categorie=cat)
+        plats = plats.filter(categorie__nom=cat)
     if q:
         plats = plats.filter(Q(nom__icontains=q) | Q(description__icontains=q))
     plats = plats.order_by('nom')

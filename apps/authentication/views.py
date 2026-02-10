@@ -47,7 +47,7 @@ def redirect_after_login(request):
     if user.role == 'Rtable':
         return redirect('menu:list_dishes')
     elif user.role == 'Rservent':
-        return redirect('tables:list_tables')
+        return redirect('orders:list_orders')  # Comme le caissier
     elif user.role == 'Rcuisinier':
         return redirect('menu:manage_dishes')
     elif user.role == 'Rcaissier':

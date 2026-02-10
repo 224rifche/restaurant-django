@@ -160,46 +160,16 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Configuration de la base de données MySQL
-# Configuration de la base de données
+# Configuration de la base de données PostgreSQL Neon
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQLDATABASE', 'railway'),
-        'USER': os.getenv('MYSQLUSER', 'root'),
-        'PASSWORD': os.getenv('MYSQLPASSWORD', 'qfwbhaOFfumhinTZCSpAYyDpccXUcgJL'),
-        'HOST': os.getenv('MYSQLHOST', 'metro.proxy.rlwy.net'),
-        'PORT': os.getenv('MYSQLPORT', '44250'),  # Laissez en tant que chaîne
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-            'ssl': {'ssl': {}}
-        }
-    }
-}
-
-# Configuration alternative avec dj_database_url
-if os.environ.get('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=False,
-       # conn_max_identity_ltree=100  # Ajout de cette option
-    )
-
-
-
-# Configuration pour la base de données de production via DATABASE_URL (prioritaire)
-DATABASE_URL = os.environ.get('DATABASE_URL') or config('DATABASE_URL', default='')
-if DATABASE_URL:
-    if dj_database_url is None:
-        raise RuntimeError('DATABASE_URL is set but dj_database_url is not installed. Install dj-database-url.')
-    DATABASES['default'] = dj_database_url.parse(
+    'default': dj_database_url.parse(
         DATABASE_URL,
         conn_max_age=600,
-        ssl_require=False,
+        ssl_require=True,
     )
-    DATABASES['default'].setdefault('OPTIONS', {})
-    DATABASES['default']['OPTIONS'].pop('sslmode', None)
+}
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies' if DEBUG else 'django.contrib.sessions.backends.cached_db'
 SESSION_CACHE_ALIAS = 'default'

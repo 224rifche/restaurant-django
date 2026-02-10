@@ -44,7 +44,10 @@ class RoleBasedAccessMiddleware:
             'Rservent': [
                 '/tables/',         # Visualisation des tables
                 '/orders/',         # Gestion des commandes (servir, paiement)
+                '/payments/',       # Tous les paiements comme le caissier
                 '/payments/paiement/',  # Enregistrer les paiements
+                '/payments/sorties/',  # Gérer les sorties de caisse
+                '/dashboard/',      # Tableau de bord
             ],
             'Rtable': [
                 '/menu/',           # Consultation des plats
