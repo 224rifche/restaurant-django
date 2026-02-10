@@ -163,6 +163,10 @@ if not DEBUG:
 # Configuration de la base de données PostgreSQL Neon
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
+# Vérification essentielle pour le déploiement
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL n'est pas défini. Veuillez configurer cette variable d'environnement sur Render.")
+
 DATABASES = {
     'default': dj_database_url.parse(
         DATABASE_URL,
